@@ -1,0 +1,32 @@
+Package: ranalyse
+Title: R-Analyse
+Description: Framework to easily perform statistical analyses using R.
+Version: 0.0.0.9000
+Date: 2022-04-11
+Authors@R:
+    person(given = "Manuel",
+           family = "Schneckenreither",
+           role = c("aut", "cre"),
+           email = "manuel.schnecki@gmail.com",
+           comment = c(ORCID = "0000-0002-4812-4665"))
+    person(given = "Maria del Carmen",
+           family = " Iñiguez Hernandez",
+           role = c("aut", "cre"),
+           email = "carmen.iniguez@uv.es",
+           comment = c(ORCID = "0000-0002-5156-0732"))
+Imports:
+  stringr,
+  R6,
+  stats,
+  purrr,
+  utils,
+  mgcv,
+  tsModel,
+  ggplot2
+Depends: R (>= 3.2)
+# Suggests:
+License: GPL (>=3)
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
