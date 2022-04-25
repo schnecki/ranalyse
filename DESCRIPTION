@@ -1,8 +1,10 @@
 Package: ranalyse
 Title: R-Analyse
 Description: Framework to easily perform statistical analyses using R.
-Version: 0.0.0.9000
+Version: 0.0.1
 Date: 2022-04-11
+Author: Manuel Schneckenreither
+Maintainer: Manuel Schneckenreither <manuel.schnecki@gmail.com>
 Authors@R:
     person(given = "Manuel",
            family = "Schneckenreither",
@@ -25,8 +27,7 @@ Imports:
   tsModel,
   ggplot2
 Depends: R (>= 3.2)
-# Suggests:
-License: GPL (>=3)
+License: file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)

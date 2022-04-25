@@ -9,7 +9,7 @@ VariableDate <- R6::R6Class(
 
     ## Properties
     private = list(
-        .xDate = NULL,     # vector<numeric>
+        .xDate = NULL, # vector<numeric>
         .y = NULL,     # vector<numeric>
         .name = NULL   # character
     ),
@@ -18,9 +18,6 @@ VariableDate <- R6::R6Class(
     public = list(
         initialize = function(x, y, name) {
             super$initialize(x, y, name)
-            ## self$x <- x
-            ## self$y <- y
-            ## self$name <- name
         }
     ),
 
@@ -29,7 +26,7 @@ VariableDate <- R6::R6Class(
     active = list(
         x = function(value) {
             if (missing(value)) return(private$.xDate)
-            if (!(base::is.date(value)))
+            if (!(rhaskell::all(is.date, value)))
                 stop("ERROR: Unallowed property ", value, " for 'xDate' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
             private$.xDate <- value
             return(self)

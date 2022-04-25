@@ -17,6 +17,7 @@ Variable <- R6::R6Class(
     ## Methods
     public = list(
         initialize = function(x, y, name) {
+            if (length(x) != length(y)) stop("Length of x and y values have to be equal!")
             self$x <- x
             self$y <- y
             self$name <- name
@@ -28,14 +29,14 @@ Variable <- R6::R6Class(
     active = list(
         x = function(value) {
             if (missing(value)) return(private$.x)
-            if (!(base::is.numeric(value)))
+            if (!(is.vector(value) && base::is.numeric(value)))
                 stop("ERROR: Unallowed property ", value, " for 'x' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
             private$.x <- value
             return(self)
         },
         y = function(value) {
             if (missing(value)) return(private$.y)
-            if (!(base::is.numeric(value)))
+            if (!(is.vector(value) && base::is.numeric(value)))
                 stop("ERROR: Unallowed property ", value, " for 'y' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
             private$.y <- value
             return(self)
