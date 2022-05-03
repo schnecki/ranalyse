@@ -1,14 +1,14 @@
-#' VariableDate is a Variable specialised to x being a Date
+#' VariableFactor is a Variable specialised to x being a Factor. See `base::factor`.
 #'
-#' @export VariableDate
-#' @exportClass VariableDate
-VariableDate <- R6::R6Class(
-    classname = "VariableDate",
+#' @export VariableFactor
+#' @exportClass VariableFactor
+VariableFactor <- R6::R6Class(
+    classname = "VariableFactor",
     inherit = Variable, # Is a variable
 
     ## Properties
     private = list(
-        .vals = NULL,     # vector<numeric>
+        .vals = NULL,  # vector<factor>
         .name = NULL   # character
     ),
 
@@ -24,7 +24,7 @@ VariableDate <- R6::R6Class(
     active = list(
         vals = function(value) {
             if (missing(value)) return(private$.vals)
-            if (!(length(value) > 1 && rhaskell::all(is.date, value)))
+            if (!(length(value) > 1 && rhaskell::all(base::is.factor, value)))
                 stop("ERROR: Unallowed property ", head(value), " for 'vals' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}), ". Variable: ", self$name)
             private$.vals <- value
             return(self)

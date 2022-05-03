@@ -19,6 +19,7 @@ Authors@R:
 Imports:
   rhaskell,
   stringr,
+  Dict,
   R6,
   stats,
   purrr,

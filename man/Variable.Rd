@@ -28,7 +28,7 @@ This class defines a basis
 \if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Variable$new(vals, name)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Variable$new(name, vals)}\if{html}{\out{</div>}}
 }
 
 }
