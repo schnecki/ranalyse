@@ -9,26 +9,25 @@ VariableDate <- R6::R6Class(
 
     ## Properties
     private = list(
-        .xDate = NULL, # vector<numeric>
-        .y = NULL,     # vector<numeric>
+        .vals = NULL,     # vector<numeric>
         .name = NULL   # character
     ),
 
     ## Methods
     public = list(
-        initialize = function(x, y, name) {
-            super$initialize(x, y, name)
+        initialize = function(name, vals) {
+            super$initialize(name, vals)
         }
     ),
 
     ## Accessable properties. Active bindings look like fields, but each time they are accessed,
     ## they call a function. They are always publicly visible.
     active = list(
-        x = function(value) {
-            if (missing(value)) return(private$.xDate)
+        vals = function(value) {
+            if (missing(value)) return(private$.vals)
             if (!(rhaskell::all(is.date, value)))
-                stop("ERROR: Unallowed property ", value, " for 'xDate' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
-            private$.xDate <- value
+                stop("ERROR: Unallowed property ", value, " for 'vals' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+            private$.vals <- value
             return(self)
         }
     )

@@ -8,16 +8,28 @@ DataSet <- R6::R6Class(
 
     ## Properties
     private = list(
-        ## .input = NULL, # vector<numeric>
-        ## .y = NULL,     # vector<numeric>
-        .name = NULL   # character
+        .name = NULL,    # character
+        .xVar = NULL, # Variable
+        .yVars = list() # List<Vars>
     ),
 
     ## Methods
     public = list(
-        initialize = function(name) {
-            super$initialize(name)
+        initialize = function(name, xVar, data = NULL) {
+            self$name <- name
+            self$xVar <- xVar
+
+            if (!base::is.null(data) && "data.frame" %in% class(data)) {
+                addFromDataFrame
+            } else if (!base::is.null(data)) {
+                stop("Unknown input type for data in DataSet$new(..).")
+            }
+
         },
+        addFromDataFrame = function(df) {
+            if ("data.frame" %in% class(df)) stop("Not a `data.frame` in DataSet$addFromDataFrame(..)")
+
+        }
         ## process = function() {
         ##     stop("The function process must be overwritten by the DataSet sub-class!")
         ## }
@@ -32,7 +44,19 @@ DataSet <- R6::R6Class(
                 stop("ERROR: Unallowed property ", value, " for 'name' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
             private$.name <- value
             return(self)
+        },
+        xVar = function(value) {
+            if (missing(value)) return(private$.xVar)
+            if (!(base::is.numeric(value) && base::is.vector(value)))
+                stop("ERROR: Unallowed property ", value, " for 'xVar' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+            private$.xVar <- value
+            return(self)
+        },
+        yVars = function(value) {
+            if (missing(value)) return(private$.yVars)
+            stop("Cannot set yVars directly")
         }
+
 
         ## input = function(value) {
         ##     if (missing(value)) return(private$.input)

@@ -9,36 +9,26 @@ Variable <- R6::R6Class(
 
     ## Properties
     private = list(
-        .x = NULL,     # vector<numeric>
-        .y = NULL,     # vector<numeric>
+        .vals = NULL,   # vector<numeric>
         .name = NULL   # character
     ),
 
     ## Methods
     public = list(
-        initialize = function(x, y, name) {
-            if (length(x) != length(y)) stop("Length of x and y values have to be equal!")
-            self$x <- x
-            self$y <- y
+        initialize = function(name, vals) {
             self$name <- name
+            self$vals <- vals
         }
     ),
 
     ## Accessable properties. Active bindings look like fields, but each time they are accessed,
     ## they call a function. They are always publicly visible.
     active = list(
-        x = function(value) {
-            if (missing(value)) return(private$.x)
+        vals = function(value) {
+            if (missing(value)) return(private$.vals)
             if (!(is.vector(value) && base::is.numeric(value)))
-                stop("ERROR: Unallowed property ", value, " for 'x' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
-            private$.x <- value
-            return(self)
-        },
-        y = function(value) {
-            if (missing(value)) return(private$.y)
-            if (!(is.vector(value) && base::is.numeric(value)))
-                stop("ERROR: Unallowed property ", value, " for 'y' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
-            private$.y <- value
+                stop("ERROR: Unallowed property ", value, " for 'vals' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+            private$.vals <- value
             return(self)
         },
         name = function(value) {
