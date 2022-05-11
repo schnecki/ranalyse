@@ -13,3 +13,8 @@ propError <- function(name, value, srcFile, srcLoc) {
     if (nchar(val) > 40) val <- str_trunc(val, 40)
     stop("ERROR: Unallowed property '", val, "' for '", name, "' at ", srcFile, ":", srcLoc)
 }
+
+## is.sequential <- function(x){
+##   return(base::all(base::abs(base::diff(x)) == 1))
+## }
+##

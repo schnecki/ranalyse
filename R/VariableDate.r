@@ -1,6 +1,5 @@
 #' VariableDate is a Variable specialised to x being a Date
 #'
-#' This class defines a basis
 #' @export VariableDate
 #' @exportClass VariableDate
 VariableDate <- R6::R6Class(
@@ -25,7 +24,7 @@ VariableDate <- R6::R6Class(
     active = list(
         vals = function(value) {
             if (missing(value)) return(private$.vals)
-            if (!(rhaskell::all(is.date, value)))
+            if (!(length(value) > 1 && rhaskell::all(is.date, value)))
                 propError("vals", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.vals <- value
             return(self)

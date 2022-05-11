@@ -1,6 +1,5 @@
 #' Variable that will be present in output tree
 #'
-#' This class defines a basis
 #' @export Variable
 #' @exportClass Variable
 Variable <- R6::R6Class(
@@ -10,7 +9,7 @@ Variable <- R6::R6Class(
     ## Properties
     private = list(
         .vals = NULL,   # vector<numeric>
-        .name = NULL   # character
+        .name = NULL    # character
     ),
 
     ## Methods
@@ -27,11 +26,12 @@ Variable <- R6::R6Class(
     active = list(
         vals = function(value) {
             if (missing(value)) return(private$.vals)
-            if (!(is.vector(value) && base::is.numeric(value)))
+            if (!(base::is.vector(value) && rhaskell::all(base::is.numeric, value)))
                 propError(vals, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.vals <- value
             return(self)
         },
+        length = function() length(private$.vals),
         name = function(value) {
             if (missing(value)) return(private$.name)
             if (!(base::is.character(value)))
