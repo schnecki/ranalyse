@@ -10,18 +10,17 @@ Node <- R6::R6Class(
     private = list(
         .parent = NULL,     # Maybe<Node>
         .childs = NULL,     # List<Node>
-        .desc = NULL        # character
+        .desc = NULL        # Maybe<character>
     ),
 
     ## Methods
     public = list(
-        initialize = function(desc, parent) {
+        initialize = function(desc) {
             self$desc <- desc
-            self$parent <- parent
         },
         addChild = function(child) {
             if (!("Node" %in% class(child)))
-                stop("ERROR: Unallowed property ", value, " for 'childs' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+                propError(addChild, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             self.childs <- append(self.childs, list(child))
         }
     ),
@@ -32,21 +31,21 @@ Node <- R6::R6Class(
         parent = function(value) {
             if (missing(value)) return(private$.parent)
             if (!("Node" %in% class(value)))
-                stop("ERROR: Unallowed property ", value, " for 'parent' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+                propError(parent, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.parent <- value
             return(self)
         },
         childs = function(value) {
             if (missing(value)) return(private$.childs)
             if (!("Node" %in% class(value)))
-                stop("ERROR: Unallowed property ", value, " for 'childs' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+                propError(childs, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.childs <- value
             return(self)
         },
         desc = function(value) {
             if (missing(value)) return(private$.desc)
-            if (!(base::is.character(value)))
-                stop("ERROR: Unallowed property ", value, " for 'desc' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+            if (!(base::is.character(value) || is.null(value)))
+                propError(desc, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.desc <- value
             return(self)
         }

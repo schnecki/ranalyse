@@ -15,7 +15,8 @@ Variable <- R6::R6Class(
 
     ## Methods
     public = list(
-        initialize = function(name, vals) {
+        initialize = function(name, vals, desc = NULL) {
+            super$initialize(desc)
             self$name <- name
             self$vals <- vals
         }
@@ -27,14 +28,14 @@ Variable <- R6::R6Class(
         vals = function(value) {
             if (missing(value)) return(private$.vals)
             if (!(is.vector(value) && base::is.numeric(value)))
-                stop("ERROR: Unallowed property ", value, " for 'vals' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+                propError(vals, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.vals <- value
             return(self)
         },
         name = function(value) {
             if (missing(value)) return(private$.name)
             if (!(base::is.character(value)))
-                stop("ERROR: Unallowed property ", value, " for 'name' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+                propError(name, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.name <- value
             return(self)
         }
