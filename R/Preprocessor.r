@@ -29,7 +29,7 @@ Preprocessor <- R6::R6Class(
         input = function(value) {
             if (missing(value)) return(private$.input)
             if (!(base::is.numeric(value) && base::is.vector(value)))
-                propError(input, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+                propError("input", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.input <- value
             return(self)
         }

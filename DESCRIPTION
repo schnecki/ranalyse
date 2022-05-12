@@ -18,6 +18,7 @@ Authors@R:
            comment = c(ORCID = "0000-0002-5156-0732"))
 Imports:
   rhaskell,
+  sets,
   stringr,
   Dict,
   R6,
