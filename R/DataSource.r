@@ -11,9 +11,12 @@ DataSource <- R6::R6Class(
     private = list(
         .xVarName = NULL,     # char
         .variableDesc = NULL, # vector(varName = varDescription)
-        .columns = list(),    # Map<Char, Vector>
+        .columns = Dict$new(a = NULL)$clear(), # Dict<Char, Vector>
         addColumn = function(name, data) {
-            self$columns[[name]] <- as.vector(data)
+            ## self$columns[[name]] <- as.vector(data)
+            ##:ess-bp-start::conditional@:##
+browser(expr={TRUE})##:ess-bp-end:##
+            self$columns[name] <- as.vector(data)
         }
     ),
 
@@ -31,7 +34,9 @@ DataSource <- R6::R6Class(
         createDataSet = function() {
             vars <- self$variableDesc
             if (is.null(vars)) vars <- names(self$columns)
-            ds <- DataSet$new(paste("Dataset, x-Var:", self$xVarName), )
+            ds <- DataSet$new(paste("Dataset, x-Var:", self$xVarName), self$xVarName)
+            ds$parent <- self
+            return(foldl(function(d, n) ds$addVariableFromData(n, self$columns[[n]]), ds, names(self$columns)))
         }
     ),
 

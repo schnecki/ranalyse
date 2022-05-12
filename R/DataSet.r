@@ -1,4 +1,3 @@
-library(Dict)
 #' DataSet interface.
 #'
 #' This class defines a basis
@@ -22,18 +21,18 @@ DataSet <- R6::R6Class(
             self$name <- name
             self$xVar <- xVar
         },
-        initialize = function(name, xVar, data = NULL, skipColumns = NULL) {
-            self$name <- name
-            self$xVar <- xVar
+        ## initialize = function(name, xVar, data = NULL, skipColumns = NULL) {
+        ##     self$name <- name
+        ##     self$xVar <- xVar
 
-            if (!base::is.null(data) && "data.frame" %in% class(data)) {
-                cols <- names(data)
-                if (!is.null(skipColumns)) cols <- filter(function(x) !(x %in% skipColumns), names(data))
-                self$addVariablesFromDataFrame(data, cols)
-            } else if (!base::is.null(data)) {
-                stop("Unknown input type for data in DataSet$new(..).")
-            }
-        },
+        ##     if (!base::is.null(data) && "data.frame" %in% class(data)) {
+        ##         cols <- names(data)
+        ##         if (!is.null(skipColumns)) cols <- filter(function(x) !(x %in% skipColumns), names(data))
+        ##         self$addVariablesFromDataFrame(data, cols)
+        ##     } else if (!base::is.null(data)) {
+        ##         stop("Unknown input type for data in DataSet$new(..).")
+        ##     }
+        ## },
         addVariablesFromDataFrame = function(df, columns = names(df)) {
             if (!("data.frame" %in% class(df))) stop("Not a `data.frame` in DataSet$addFromDataFrame(..)")
             if (rhaskell::any(function(c) c %notElem% names(df), columns)) stop("Not all column names are part of the data frame that you want to add to the `DataSet`!")
