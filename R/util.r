@@ -11,6 +11,7 @@ is.date <- function(x) {
 propError <- function(name, value, srcFile, srcLoc) {
     val <- toString(value)
     if (nchar(val) > 40) val <- str_trunc(val, 40)
+    # tb <- traceback() ## x = NULL, max.lines = getOption("traceback.max.lines", getOption("deparse.max.lines", -1L)))
     stop("ERROR: Unallowed property '", val, "' for '", name, "' at ", srcFile, ":", srcLoc)
 }
 

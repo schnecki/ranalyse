@@ -20,7 +20,7 @@ Node <- R6::R6Class(
         },
         addChild = function(child) {
             if (!("Node" %in% class(child)))
-                propError(addChild, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+                propError("addChild", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             self.childs <- append(self.childs, list(child))
         }
     ),
@@ -31,21 +31,21 @@ Node <- R6::R6Class(
         parent = function(value) {
             if (missing(value)) return(private$.parent)
             if (!("Node" %in% class(value)))
-                propError(parent, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+                propError("parent", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.parent <- value
             return(self)
         },
         childs = function(value) {
             if (missing(value)) return(private$.childs)
             if (!("Node" %in% class(value)))
-                propError(childs, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+                propError("childs", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.childs <- value
             return(self)
         },
         desc = function(value) {
             if (missing(value)) return(private$.desc)
             if (!(base::is.character(value) || is.null(value)))
-                propError(desc, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+                propError("desc", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.desc <- value
             return(self)
         }

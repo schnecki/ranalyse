@@ -27,7 +27,7 @@ Variable <- R6::R6Class(
         vals = function(value) {
             if (missing(value)) return(private$.vals)
             if (!(base::is.vector(value) && rhaskell::all(base::is.numeric, value)))
-                propError(vals, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+                propError("vals", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.vals <- value
             return(self)
         },
@@ -35,7 +35,7 @@ Variable <- R6::R6Class(
         name = function(value) {
             if (missing(value)) return(private$.name)
             if (!(base::is.character(value)))
-                propError(name, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+                propError("name", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.name <- value
             return(self)
         }

@@ -13,9 +13,6 @@ DataSource <- R6::R6Class(
         .variableDesc = NULL, # vector(varName = varDescription)
         .columns = Dict$new(a = NULL)$clear(), # Dict<Char, Vector>
         addColumn = function(name, data) {
-            ## self$columns[[name]] <- as.vector(data)
-            ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
             self$columns[name] <- as.vector(data)
         }
     ),
@@ -34,6 +31,10 @@ browser(expr={TRUE})##:ess-bp-end:##
         createDataSet = function() {
             vars <- self$variableDesc
             if (is.null(vars)) vars <- names(self$columns)
+            if (!self$columns$has(self$xVarName)) {
+                stop("Column '", self$xVarName, "' set as x-axis variable, but cannot be found in set of variables (columns).")
+            }
+            xVar <-
             ds <- DataSet$new(paste("Dataset, x-Var:", self$xVarName), self$xVarName)
             ds$parent <- self
             return(foldl(function(d, n) ds$addVariableFromData(n, self$columns[[n]]), ds, names(self$columns)))
@@ -46,14 +47,14 @@ browser(expr={TRUE})##:ess-bp-end:##
         xVarName = function(value) {
             if (missing(value)) return(private$.xVarName)
             if (!(base::is.character(value)))
-                stop("ERROR: Unallowed property ", value, " for 'xVarName' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+                propError("xVarName", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.xVarName <- value
             return(self)
         },
         columns = function(value) {
             if (missing(value)) return(private$.columns)
-            if (!(base::is.list(value)))
-                stop("ERROR: Unallowed property ", value, " for 'columns' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+            if (!("Dict" %in% class(value)))
+                propError("columns", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.columns <- value
             return(self)
         }

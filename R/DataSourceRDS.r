@@ -32,7 +32,7 @@ DataSourceRDS <- R6::R6Class(
         filepath = function(value) {
             if (missing(value)) return(private$.filepath)
             if (!(base::is.character(value)))
-                propError(filepath, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+                propError("filepath", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.filepath <- value
             return(self)
         }

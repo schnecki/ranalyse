@@ -66,21 +66,21 @@ DataSet <- R6::R6Class(
         name = function(value) {
             if (missing(value)) return(private$.name)
             if (!(base::is.character(value)))
-                propError(name, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+                propError("name", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.name <- value
             return(self)
         },
         xVar = function(value) {
             if (missing(value)) return(private$.xVar)
             if (!("Variable" %in% class(value)))
-                propError(xVar, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+                propError("xVar", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.xVar <- value
             return(self)
         },
         yVars = function(value) {
             if (missing(value)) return(private$.yVars)
             if (!("Dict" %in% class(value)))
-                stop("ERROR: Unallowed property ", value, " for 'yVars' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+                propError("yVars", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.yVars <- value
             return(self)
         },
@@ -91,7 +91,7 @@ DataSet <- R6::R6Class(
         ## input = function(value) {
         ##     if (missing(value)) return(private$.input)
         ##     if (!(base::is.numeric(value) && base::is.vector(value)))
-        ##         propError(## input, value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+        ##         propError(## "input", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
         ##     private$.input <- value
         ##     return(self)
         ## }
