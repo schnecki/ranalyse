@@ -42,3 +42,22 @@ Variable <- R6::R6Class(
     )
 
 )
+
+#' Function used to create a new variable. It checks for the type of data and selects an appropriate
+#' Variable class.
+#'
+#' @param name string Name of variable
+#' @param data vector variable data
+#' @param desc string Description of variable
+#'
+#' @export Variable$fromData
+Variable$fromData <- function(name, data, desc = NULL) {
+    if (is.date(data)) return(VariableDate$new(name, data))
+    else if (is.factor(data)) return(VariableFactor$new(name, data))
+    else if (is.logical(data)) return(VariableBoolean$new(name, data))
+    else if (is.character(data) && is.na(as.numeric(data[[1]]))) return(VariableString$new(name, data))
+    else if (is.character(data)) { # is numeric value in character string. convert.
+        warning(paste0("Found numeric values variable ", name, ". Converting to numeric values!"))
+        return(Variable$new(name, as.numeric(data)))
+    } else return(Variable$new(name, as.vector(data)))
+}

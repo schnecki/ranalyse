@@ -21,39 +21,22 @@ DataSet <- R6::R6Class(
             self$name <- name
             self$xVar <- xVar
         },
-        ## initialize = function(name, xVar, data = NULL, skipColumns = NULL) {
-        ##     self$name <- name
-        ##     self$xVar <- xVar
-
-        ##     if (!base::is.null(data) && "data.frame" %in% class(data)) {
-        ##         cols <- names(data)
-        ##         if (!is.null(skipColumns)) cols <- filter(function(x) !(x %in% skipColumns), names(data))
-        ##         self$addVariablesFromDataFrame(data, cols)
-        ##     } else if (!base::is.null(data)) {
-        ##         stop("Unknown input type for data in DataSet$new(..).")
-        ##     }
-        ## },
         addVariablesFromDataFrame = function(df, columns = names(df)) {
             if (!("data.frame" %in% class(df))) stop("Not a `data.frame` in DataSet$addFromDataFrame(..)")
             if (rhaskell::any(function(c) c %notElem% names(df), columns)) stop("Not all column names are part of the data frame that you want to add to the `DataSet`!")
             rhaskell::map(function(c) self$addVariableFromData(c, df[[c]]), columns)
+            return(self)
         },
-        addVariableFromData = function(name, data) {
-            if (is.date(data)) var <- VariableDate$new(name, data)
-            else if (is.factor(data)) var <- VariableFactor$new(name, data)
-            else if (is.logical(data)) var <- VariableBoolean$new(name, data)
-            else if (is.character(data) && is.na(as.numeric(data[[1]]))) var <- VariableString$new(name, data)
-            else if (is.character(data)) { # is numeric value in character string. convert.
-                warning(paste0("Found numeric values variable ", name, ". Converting to numeric values!"))
-                var <- Variable$new(name, as.numeric(data))
-            } else var <- Variable$new(name, as.vector(data))
-            self$addVariable(var)
+        addVariableFromData = function(name, data, varDesc = NULL) {
+            self$addVariable(Variable$fromData(name, data, varDesc))
+            return(self)
         },
         addVariable = function(var) {
             if (self$xVar$length != var$length)
                 stop(paste0("Number of values from domain (x-axis) and variable to be added to the `DataSet` have does not coincide: ", self$xVar$length, " != ", var$length, ". Variable: ", var$name))
             if (self$yVars$has(var$name)) stop(paste0("Variable with name '", var$name, "' already exists in DataSet."))
             self$yVars[var$name] <- var
+            return(self)
         }
         ## process = function() {
         ##     stop("The function process must be overwritten by the DataSet sub-class!")
