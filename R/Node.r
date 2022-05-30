@@ -8,9 +8,9 @@ Node <- R6::R6Class(
 
     ## Properties
     private = list(
-        .parent = NULL,     # Maybe<Node>
-        .childs = NULL,     # List<Node>
-        .desc = NULL        # Maybe<character>
+        .parent = NULL,        # Maybe<Node>
+        .childs = NULL,        # List<Node>
+        .desc = NULL           # Maybe<character>
     ),
 
     ## Methods
@@ -21,7 +21,9 @@ Node <- R6::R6Class(
         addChild = function(child) {
             if (!("Node" %in% class(child)))
                 propError("addChild", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
-            self.childs <- append(self.childs, list(child))
+            if (!identical(child$parent, self)) child$parent <- self
+            if (!rhaskell::any(identical(child), self$childs))
+                self$childs <- append(self$childs, list(child))
         }
     ),
 
@@ -33,11 +35,12 @@ Node <- R6::R6Class(
             if (!("Node" %in% class(value)))
                 propError("parent", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.parent <- value
+            private$.parent$addChild(self)
             return(self)
         },
         childs = function(value) {
             if (missing(value)) return(private$.childs)
-            if (!("Node" %in% class(value)))
+            if (!(is.list(value) || rhaskell::all(function(c) "Node" %in% class(c), value)))
                 propError("childs", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.childs <- value
             return(self)
@@ -48,7 +51,8 @@ Node <- R6::R6Class(
                 propError("desc", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.desc <- value
             return(self)
-        }
+        },
+        isProcessNode = function() FALSE
     )
 
 )

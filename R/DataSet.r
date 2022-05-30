@@ -33,14 +33,30 @@ DataSet <- R6::R6Class(
         },
         addVariable = function(var) {
             if (self$xVar$length != var$length)
-                stop(paste0("Number of values from domain (x-axis) and variable to be added to the `DataSet` have does not coincide: ", self$xVar$length, " != ", var$length, ". Variable: ", var$name))
+                stop(paste0("Number of values from domain (x-axis) and variable to be added to the `DataSet` do not coincide: ", self$xVar$length, " != ", var$length, ". Variable: ", var$name))
             if (self$yVars$has(var$name)) stop(paste0("Variable with name '", var$name, "' already exists in DataSet."))
             self$yVars[var$name] <- var
             return(self)
+        },
+        getVariable = function(var) {
+            stop("TODO")
+
+        },
+        preprocess = function(preprocs) {
+            if (!is.list(preprocs) && "Preprocessor" %in% class(preprocs)) preprocs <- list(preprocs)
+            if (rhaskell::any(function(x) !("Preprocessor" %in% class(x)), preprocs))
+                stop("Expecting a list of @Preprocessor@ objects in Dataset$preprocess(..)")
+            newDs <- ds$clone(deep = TRUE)
+            for (prep in preprocs) {
+                inputNames <- prep$inputNames
+                inputValues <-
+                prep$preprocess
+            }
+
+
+            stop("TODO")
+
         }
-        ## process = function() {
-        ##     stop("The function process must be overwritten by the DataSet sub-class!")
-        ## }
     ),
 
     ## Accessable properties. Active bindings look like fields, but each time they are accessed,
@@ -68,8 +84,8 @@ DataSet <- R6::R6Class(
             return(self)
         },
         length = function() private$.yVars$length,
-        variableNames = function() return(self$yVars$keys)
-
+        variableNames = function() return(base::append(list(self$xVar$name), self$variableNamesY)),
+        variableNamesY = function() return(as.list(self$yVars$keys))
 
         ## input = function(value) {
         ##     if (missing(value)) return(private$.input)

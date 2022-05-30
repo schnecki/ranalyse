@@ -47,15 +47,25 @@ DataSource <- R6::R6Class(
             if (rhaskell::null(vars)) stop("No variables selected in parameter function `filterVarsFun` that are also defined in `variableDesc`")
             lengths <- rhaskell::map(function(x) x$length, vars)
             len <- min(unlist(lengths))
+            dataCutTxt <- ""
             if (!rhaskell::all(function(l) l == len, lengths)) {
-                warning("Length of variables does not coincide, cutting of data!")
+                dataCutTxt <- "Length of variables do not coincide, cutting of data!"
+                warning(dataCutTxt)
                 rhaskell::mapM_(function(v) v$vals <- v$vals[1:len], vars)
             }
             data <- self$columns$get(self$xVarName)
-            if (is.null(data)) data <- 1:len
+            xVarSrc <- self$xVarName
+            if (is.null(data)) {
+                data <- 1:len
+                xVarSrc <- paste0("c(1:", len, ")")
+            }
             xVar <- Variable$fromData(self$xVarName, data)
+            ## Processing node
+            ndProc <- NodeProcessor$new(paste0("Creating DataSource. Y-Vars: ", length(vars), "/", self$columns$length, ". X-Var: ", xVarSrc, ". ", dataCutTxt))
+            ndProc$parent <- self
+            ## DataSet node
             ds <- DataSet$new(paste("Dataset, x-Var:", self$xVarName), xVar)
-            ds$parent <- self
+            ds$parent <- ndProc
             return(rhaskell::foldl(function(d, v) d$addVariable(v), ds, vars))
         }
     ),

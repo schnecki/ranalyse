@@ -19,6 +19,7 @@ DataSourceRDS <- R6::R6Class(
         #' @param variableDesc sets::tuple A tuple of variable names with descriptions. E.g. `sets::tuple(name = "varName", desc = "varirable Description")`
         #' @param nodeDesc string Description for Node in Graph
         initialize = function(filepath, xVarName, variableDesc = NULL, nodeDesc = NULL) {
+            if (is.null(nodeDesc)) nodeDesc <- paste("DataSource from RDS file:", filepath)
             super$initialize(xVarName, variableDesc, nodeDesc)
             if (!file.exists(filepath)) stop("Filepath '", filepath, "' provided in `DataSourceRDS$new(..)` does not exist!")
             self$filepath <- filepath
