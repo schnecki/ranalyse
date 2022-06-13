@@ -40,14 +40,16 @@ DataSet <- R6::R6Class(
         },
         getVariable = function(varName) {
             if (varName == self$xVar$name) return(self$xVar)
-            else if (!self$yVars$has(varName)) stop(paste0("Variable with name '", var$name, "' does not exit in DataSet (anymore)."))
+            else if (!self$yVars$has(varName)) stop(paste0("Variable with name '", varName, "' does not exit in DataSet (anymore)."))
             else return(self$yVars$get(varName))
         },
         removeVariable = function(varName, stopIfExists = TRUE) {
             if (varName == self$xVar$name) stop("Cannot remove x-Variable '", varName, "' from DataSet")
-            else if (stopIfExists && !self$yVars$has(varName)) stop(paste0("Variable with name '", var$name, "' does not exit in DataSet (anymore)."))
+            else if (stopIfExists && !self$yVars$has(varName)) stop(paste0("Variable with name '", varName, "' does not exit in DataSet (anymore)."))
             else if (self$yVars$has(varName)) self$yVars$remove(varName)
         },
+        #' @deleteVariable@ is the same as @removeVariable@.
+        deleteVariable = function(...) self$removeVariable(...),
         preprocess = function(preprocs) {
             if (!is.list(preprocs) && "Preprocessor" %in% class(preprocs)) preprocs <- list(preprocs)
             if (rhaskell::any(function(x) !("Preprocessor" %in% class(x)), preprocs))
@@ -62,7 +64,9 @@ DataSet <- R6::R6Class(
                 inputNames <- prep$inputNames
                 inputValues <- rhaskell::map(rhaskell::comp(function(v) v$vals, self$getVariable), inputNames)
                 newVar <- prep$preprocess(inputValues)
-                ds$addVariable(newVar)
+                ## Add new variable(s)
+                rhaskell::mapM_(ds$addVariable, prep$additionalResultVars) # intermediate results
+                ds$addVariable(newVar)                                     # final variable
                 if (prep$deleteInputVars) {
                     rhaskell::mapM_(ds$removeVariable, inputNames)
                 }

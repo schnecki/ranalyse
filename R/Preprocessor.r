@@ -15,6 +15,7 @@ Preprocessor <- R6::R6Class(
         .outputValue = NULL,               # vector<numeric>
         .outputVariable = NULL,            # Variable
         .deleteInputVars = FALSE,          # Bool
+        .additionalResultVars = list(),       # additional results that can be saved
 
         #' Preprocessor function. Must return the output @Variable@.
         #' @param inputValues Input values to be processed
@@ -24,6 +25,9 @@ Preprocessor <- R6::R6Class(
         #' Default description for new @Variable@. Should be overwritten by class implementation.
         .getDefaultDesc = function() {
             return(NULL)
+        },
+        .addAdditionalResultVar = function(var) {
+            self$additionalResultVars <- base::append(self$additionalResultVars, list(var))
         }
     ),
 
@@ -99,7 +103,15 @@ Preprocessor <- R6::R6Class(
                 propError("deleteInputVars", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.deleteInputVars <- value
             return(self)
+        },
+        additionalResultVars = function(value) {
+            if (missing(value)) return(private$.additionalResultVars)
+            if (!(base::is.list(value) && rhaskell::all(function(c) "Variable" %in% class(c), value)))
+                stop("ERROR: Unallowed property ", value, " for 'additionalResultVars' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+            private$.additionalResultVars <- value
+            return(self)
         }
+
 
     )
 

@@ -9,18 +9,29 @@ PreprocessorThen <- R6::R6Class(
 
     ## Properties
     private = list(
-        .prepFirst = NULL,          # Preprocessor
-        .prepSecond = NULL,         # Preprocessor
-        .intermediateResult = NULL, # Variable
+        .prepFirst = NULL,               # Preprocessor
+        .prepSecond = NULL,              # Preprocessor
 
         ## Processor function
         .process = function(inputValues) {
-            inputValuesFirst <- rhaskell::take(length(self$prepFirst$inputValues), inputValues)
-            inputValuesSecond <- rhaskell::drop(length(self$prepFirst$inputValues), inputValues)
+            inputValuesFirst <- rhaskell::take(length(self$prepFirst$inputNames), inputValues)
             output1 <- self$prepFirst$preprocess(inputValuesFirst)
-            self$intermediateResult <- output1
-            inputValues <- rhaskell::map(rhaskell::comp(function(v) v$vals, self$getVariable), inputNames)
-            return(self$prepSecond$preprocess(output1$vals))
+            if (!self$prepSecond$deleteInputVars)
+                private$.addAdditionalResultVar(output1)
+            ## Input to second
+            basicInputValuesSecond <- rhaskell::drop(length(self$prepFirst$inputNames), inputValues)
+            basicNamesInputValuesSecond <- rhaskell::delete(self$prepFirst$outputName, self$prepSecond$inputNames)
+            inputValuesSecond <- list()
+            idx <- 1
+            for (n in self$prepSecond$inputNames) {
+                if (n == self$prepFirst$outputName) inputValuesSecond <- base::append(inputValuesSecond, list(output1$vals))
+                else {
+                    inputValuesSecond <- base::append(inputValuesSecond, list(basicInputValuesSecond[[idx]]))
+                    idx <- idx + 1
+                }
+            }
+            output2 <- self$prepSecond$preprocess(inputValuesSecond)
+            return(output2$vals)
         },
         .getDefaultDesc = function() {
             return(paste0(getR6ClassName(self$prepFirst), "(", paste(self$prepFirst$inputNames, collapse = ", "), ")",
@@ -30,11 +41,12 @@ PreprocessorThen <- R6::R6Class(
 
     ## Methods
     public = list(
+        #' TODO: support multiple first and/or second nodes
         initialize = function(prepFirst, prepSecond, nodeDesc = NULL) {
             if (is.null(nodeDesc))
                 nodeDesc <- paste0(prepSecond$outputName, " <- ", getR6ClassName(prepFirst), "(", paste(prepFirst$inputNames, collapse = ", "), ")",
                                    " >>= function(", prepFirst$outputName, ") ", getR6ClassName(prepSecond), "(", paste(prepSecond$inputNames, collapse = ", "), ")")
-            super$initialize(prepSecond$outputName, base::append(prepFirst$inputNames, prepSecond$inputNames), prepFirst$deleteInputVars, nodeDesc)
+            super$initialize(prepSecond$outputName, base::append(prepFirst$inputNames, rhaskell::delete(prepFirst$outputName, prepSecond$inputNames)), prepFirst$deleteInputVars, nodeDesc)
             self$prepFirst <- prepFirst
             self$prepSecond <- prepSecond
         }
@@ -56,16 +68,6 @@ PreprocessorThen <- R6::R6Class(
                 propError("prepSecond", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.prepSecond <- value
             return(self)
-        },
-        intermediateResult = function(value) {
-            if (missing(value)) return(private$.intermediateResult)
-            if (!("Variable" %in% class(value)))
-                propError("intermediateResult", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
-            private$.intermediateResult <- value
-            return(self)
         }
-
-
     )
-
 )
