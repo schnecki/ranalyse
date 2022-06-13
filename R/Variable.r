@@ -39,9 +39,15 @@ Variable <- R6::R6Class(
             private$.name <- value
             return(self)
         }
-    )
-
+    ),
+    cloneable = FALSE
 )
+
+## Prevent cloning the data. Use a pointer and a new object instead.
+Variable$set("public", "clone", function(deep = TRUE) {
+    return(Variable$new(self$name, self$vals, self$desc))
+})
+
 
 #' Function used to create a new variable. It checks for the type of data and selects an appropriate
 #' Variable class.

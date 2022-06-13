@@ -38,24 +38,33 @@ DataSet <- R6::R6Class(
             self$yVars[var$name] <- var
             return(self)
         },
-        getVariable = function(var) {
-            stop("TODO")
-
+        getVariable = function(varName) {
+            if (varName == self$xVar$name) return(self$xVar)
+            else if (!self$yVars$has(varName)) stop(paste0("Variable with name '", var$name, "' does not exit in DataSet (anymore)."))
+            else return(self$yVars$get(varName))
+        },
+        removeVariable = function(varName, stopIfExists = TRUE) {
+            if (varName == self$xVar$name) stop("Cannot remove x-Variable '", varName, "' from DataSet")
+            else if (stopIfExists && !self$yVars$has(varName)) stop(paste0("Variable with name '", var$name, "' does not exit in DataSet (anymore)."))
+            else if (self$yVars$has(varName)) self$yVars$remove(varName)
         },
         preprocess = function(preprocs) {
             if (!is.list(preprocs) && "Preprocessor" %in% class(preprocs)) preprocs <- list(preprocs)
             if (rhaskell::any(function(x) !("Preprocessor" %in% class(x)), preprocs))
                 stop("Expecting a list of @Preprocessor@ objects in Dataset$preprocess(..)")
-            newDs <- ds$clone(deep = TRUE)
+            oldDs <- ds$clone(deep = TRUE)
+            self$parent <- oldDs
+            oldDs$addChild(self)
+            ## newDs <- ds$clone(deep = TRUE)
             for (prep in preprocs) {
                 inputNames <- prep$inputNames
-                inputValues <-
-                prep$preprocess
+                inputValues <- rhaskell::map(rhaskell::comp(function(v) v$vals, self$getVariable), inputNames)
+                newVar <- prep$preprocess(inputValues)
+                ds$addVariable(newVar)
+                if (prep$deleteInputVars) {
+                    rhaskell::mapM_(ds$removeVariable, inputNames)
+                }
             }
-
-
-            stop("TODO")
-
         }
     ),
 
@@ -86,15 +95,6 @@ DataSet <- R6::R6Class(
         length = function() private$.yVars$length,
         variableNames = function() return(base::append(list(self$xVar$name), self$variableNamesY)),
         variableNamesY = function() return(as.list(self$yVars$keys))
-
-        ## input = function(value) {
-        ##     if (missing(value)) return(private$.input)
-        ##     if (!(base::is.numeric(value) && base::is.vector(value)))
-        ##         propError(## "input", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
-        ##     private$.input <- value
-        ##     return(self)
-        ## }
-
     )
 
 )

@@ -13,12 +13,17 @@ Preprocessor <- R6::R6Class(
         .inputNames = NULL,                # list<character>
         .inputValues = NULL,               # list<vector<numeric>>
         .outputValue = NULL,               # vector<numeric>
+        .outputVariable = NULL,            # Variable
         .deleteInputVars = FALSE,          # Bool
 
-        #' Preprocessor function. Must return the output vector
+        #' Preprocessor function. Must return the output @Variable@.
         #' @param inputValues Input values to be processed
         .process = function(inputValues) {
-            stop("The pricate function @.process@ must be overwritten by the @Preprocessor@ sub-class!")
+            stop("The private function @.process@ must be overwritten by the @Preprocessor@ sub-class!")
+        },
+        #' Default description for new @Variable@. Should be overwritten by class implementation.
+        .getDefaultDesc = function() {
+            return(NULL)
         }
     ),
 
@@ -29,6 +34,7 @@ Preprocessor <- R6::R6Class(
             super$initialize(nodeDesc)
             self$outputName <- outputName
             self$inputNames <- inputNames
+            self$deleteInputVars <- deleteInputVars
         },
         then = function(prep) {
             if ("Preprocessor" %notIn% class(prep))
@@ -37,15 +43,15 @@ Preprocessor <- R6::R6Class(
             then$addChild(self)
             then$addChild(prep)
             return(then)
-
         },
+        #' Execute preprocessor and return new @Variable@.
         preprocess = function(inputValues) {
             if (rhaskell::null(inputValues))
                 stop("Empty input to @Preprocessor@")
             self$inputValues <- inputValues
-            outputValue <- self$.process(inputValues)
-            self$outputValue <- outputValue
-            return(self)
+            self$outputValue <- private$.process(inputValues)
+            self$outputVariable <- Variable$fromData(self$outputName, self$outputValue, private$.getDefaultDesc())
+            return(self$outputVariable)
         }
     ),
 
@@ -80,6 +86,13 @@ Preprocessor <- R6::R6Class(
             ## if (is.null(self$inputValues))
             ##     stop("Error in Preprocessor implementation. You must set the @inputValues@ first!")
             private$.outputValue <- value
+            return(self)
+        },
+        outputVariable = function(value) {
+            if (missing(value)) return(private$.outputVariable)
+            if (!("Variable" %in% class(value)))
+                stop("ERROR: Unallowed property ", value, " for 'outputVariable' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+            private$.outputVariable <- value
             return(self)
         },
         deleteInputVars = function(value) {

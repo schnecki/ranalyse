@@ -22,7 +22,7 @@ Node <- R6::R6Class(
             if (!("Node" %in% class(child)))
                 propError("addChild", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             if (!identical(child$parent, self)) child$parent <- self
-            if (!rhaskell::any(identical(child), self$childs))
+            if (!rhaskell::any(function(c) identical(child, c), self$childs))
                 self$childs <- append(self$childs, list(child))
         }
     ),
