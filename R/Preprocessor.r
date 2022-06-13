@@ -37,7 +37,7 @@ Preprocessor <- R6::R6Class(
             self$deleteInputVars <- deleteInputVars
         },
         then = function(prep) {
-            if ("Preprocessor" %notIn% class(prep))
+            if (!("Preprocessor" %in% class(prep)))
                 stop("Expecting a preprocessor as argument in Preprocessor$then(..)")
             then <- PreprocessorThen$new(self, prep)
             then$addChild(self)
@@ -61,44 +61,42 @@ Preprocessor <- R6::R6Class(
         outputName = function(value) {
             if (missing(value)) return(private$.outputName)
             if (!(base::is.character(value)))
-                stop("ERROR: Unallowed property ", value, " for 'outputName' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+                propError("outputName", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.outputName <- value
             return(self)
         },
         inputNames = function(value) {
             if (missing(value)) return(private$.inputNames)
             if (!(base::is.list(value) && rhaskell::all(base::is.character, value)))
-                stop("ERROR: Unallowed property ", value, " for 'inputNames' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+                propError("inputNames", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.inputNames <- value
             return(self)
         },
         inputValues = function(value) {
             if (missing(value)) return(private$.inputValues)
             if (!(base::is.list(value) && rhaskell::all(base::is.numeric, value)))
-                stop("ERROR: Unallowed property ", value, " for 'inputValues' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+                propError("inputValues", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.inputValues <- value
             return(self)
         },
         outputValue = function(value) {
             if (missing(value)) return(private$.outputValue)
             if (!(base::is.numeric(value)))
-                stop("ERROR: Unallowed property ", value, " for 'outputValue' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
-            ## if (is.null(self$inputValues))
-            ##     stop("Error in Preprocessor implementation. You must set the @inputValues@ first!")
+                propError("outputValue", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.outputValue <- value
             return(self)
         },
         outputVariable = function(value) {
             if (missing(value)) return(private$.outputVariable)
             if (!("Variable" %in% class(value)))
-                stop("ERROR: Unallowed property ", value, " for 'outputVariable' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+                propError("outputVariable", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.outputVariable <- value
             return(self)
         },
         deleteInputVars = function(value) {
             if (missing(value)) return(private$.deleteInputVars)
             if (!(base::is.logical(value)))
-                stop("ERROR: Unallowed property ", value, " for 'deleteInputVars' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+                propError("deleteInputVars", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.deleteInputVars <- value
             return(self)
         }

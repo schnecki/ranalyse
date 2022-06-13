@@ -9,21 +9,32 @@ PreprocessorThen <- R6::R6Class(
 
     ## Properties
     private = list(
-        .prepFirst = NULL,  # Preprocessor
-        .prepSecond = NULL, # Preprocessor
+        .prepFirst = NULL,          # Preprocessor
+        .prepSecond = NULL,         # Preprocessor
+        .intermediateResult = NULL, # Variable
 
         ## Processor function
         .process = function(inputValues) {
-            output1 <- self$prepFirst(inputValues)
-            return(self$prepSecond(output1))
+            inputValuesFirst <- rhaskell::take(length(self$prepFirst$inputValues), inputValues)
+            inputValuesSecond <- rhaskell::drop(length(self$prepFirst$inputValues), inputValues)
+            output1 <- self$prepFirst$preprocess(inputValuesFirst)
+            self$intermediateResult <- output1
+            inputValues <- rhaskell::map(rhaskell::comp(function(v) v$vals, self$getVariable), inputNames)
+            return(self$prepSecond$preprocess(output1$vals))
+        },
+        .getDefaultDesc = function() {
+            return(paste0(getR6ClassName(self$prepFirst), "(", paste(self$prepFirst$inputNames, collapse = ", "), ")",
+                                   " >>= function(", self$prepFirst$outputName, ") ", getR6ClassName(self$prepSecond), "(", paste(self$prepSecond$inputNames, collapse = ", "), ")"))
         }
     ),
 
     ## Methods
     public = list(
         initialize = function(prepFirst, prepSecond, nodeDesc = NULL) {
-            if (is.null(nodeDesc)) nodeDesc <- paste0(prepSecond$outputName, " <- ", prepFirst$classname, " >>=", prepSecond$classname)
-            super$initialize(prepSecond$outputName, prepFirst$inputNames, prepFirst$deleteInputVars, nodeDesc)
+            if (is.null(nodeDesc))
+                nodeDesc <- paste0(prepSecond$outputName, " <- ", getR6ClassName(prepFirst), "(", paste(prepFirst$inputNames, collapse = ", "), ")",
+                                   " >>= function(", prepFirst$outputName, ") ", getR6ClassName(prepSecond), "(", paste(prepSecond$inputNames, collapse = ", "), ")")
+            super$initialize(prepSecond$outputName, base::append(prepFirst$inputNames, prepSecond$inputNames), prepFirst$deleteInputVars, nodeDesc)
             self$prepFirst <- prepFirst
             self$prepSecond <- prepSecond
         }
@@ -35,17 +46,25 @@ PreprocessorThen <- R6::R6Class(
         prepFirst = function(value) {
             if (missing(value)) return(private$.prepFirst)
             if (!("Preprocessor" %in% class(value)))
-                stop("ERROR: Unallowed property ", value, " for 'prepFirst' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+                propError("prepFirst", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.prepFirst <- value
             return(self)
         },
         prepSecond = function(value) {
             if (missing(value)) return(private$.prepSecond)
             if (!("Preprocessor" %in% class(value)))
-                stop("ERROR: Unallowed property ", value, " for 'prepSecond' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+                propError("prepSecond", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.prepSecond <- value
             return(self)
+        },
+        intermediateResult = function(value) {
+            if (missing(value)) return(private$.intermediateResult)
+            if (!("Variable" %in% class(value)))
+                propError("intermediateResult", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+            private$.intermediateResult <- value
+            return(self)
         }
+
 
     )
 

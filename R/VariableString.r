@@ -25,7 +25,7 @@ VariableString <- R6::R6Class(
         vals = function(value) {
             if (missing(value)) return(private$.vals)
             if (!(is.vector(value) && rhaskell::all(base::is.character, value)))
-                stop("ERROR: Unallowed property ", head(value), " for 'vals' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}), ". Variable: ", self$name)
+                propError("vals", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.vals <- value
             return(self)
         }

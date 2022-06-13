@@ -52,11 +52,13 @@ DataSet <- R6::R6Class(
             if (!is.list(preprocs) && "Preprocessor" %in% class(preprocs)) preprocs <- list(preprocs)
             if (rhaskell::any(function(x) !("Preprocessor" %in% class(x)), preprocs))
                 stop("Expecting a list of @Preprocessor@ objects in Dataset$preprocess(..)")
-            oldDs <- ds$clone(deep = TRUE)
-            self$parent <- oldDs
-            oldDs$addChild(self)
-            ## newDs <- ds$clone(deep = TRUE)
+            oldDs <- ds$clone(deep = TRUE) # we create a new node to refer back to the old state. This way the user does not have to change the variable pointing to the @DataSet@.
+            preprocsTxt <- paste(rhaskell::map(getR6ClassName, preprocs), collapse = ", ")
+            ndProc <- NodeProcessor$new(paste("Preprocessing:", preprocsTxt))
+            ndProc$parent <- oldDs
+            self$parent <- ndProc
             for (prep in preprocs) {
+                prep$parent <- ndProc
                 inputNames <- prep$inputNames
                 inputValues <- rhaskell::map(rhaskell::comp(function(v) v$vals, self$getVariable), inputNames)
                 newVar <- prep$preprocess(inputValues)

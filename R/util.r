@@ -19,3 +19,26 @@ propError <- function(name, value, srcFile, srcLoc) {
 ##   return(base::all(base::abs(base::diff(x)) == 1))
 ## }
 ##
+
+
+#' Return the classname of an R6 object
+#'
+#' @param x        object    R6 class object
+#' @param n.parent numeric   Return n.parent higher superclass. Default 0.
+#' @return character Class name
+#'
+#' @export
+getR6ClassName <- function(x, n.parent = 0) {
+    return(get(class(x)[[n.parent + 1]], -1)$classname)
+}
+
+#' Return the classname of an R6 object
+#'
+#' @param x        object    R6 class object
+#' @param n.parent numeric   Return n.parent higher superclass. Default 0.
+#' @return character Class name
+#'
+#' @export
+getR6Class <- function(x, n.parent = 0) {
+    return(get(class(x)[[n.parent + 1]], -1))
+}
