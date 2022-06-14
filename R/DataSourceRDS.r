@@ -9,7 +9,8 @@ DataSourceRDS <- R6::R6Class(
 
     ## Properties
     private = list(
-        .filepath = NULL # Filepath
+        .filepath = NULL, # Filepath
+        .getDefaultDesc = function() return(self$filepath)
     ),
 
     ## Methods

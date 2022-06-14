@@ -9,9 +9,9 @@ DataSet <- R6::R6Class(
 
     ## Properties
     private = list(
-        .name = NULL,                       # character
-        .xVar = NULL,                       # Variable
-        .yVars = Dict$new(a = NULL)$clear() # Dict<Vars>, cannot create empty Dict() ^^
+        .name = NULL,  # character
+        .xVar = NULL,  # Variable
+        .yVars = NULL  # Dict<Vars>, cannot create empty Dict() ^^
     ),
 
     ## Methods
@@ -20,6 +20,7 @@ DataSet <- R6::R6Class(
             super$initialize(desc)
             self$name <- name
             self$xVar <- xVar
+            self$yVars <- Dict$new(a = NULL)$clear()
         },
         addVariablesFromDataFrame = function(df, columns = names(df)) {
             if (!("data.frame" %in% class(df))) stop("Not a `data.frame` in DataSet$addFromDataFrame(..)")
@@ -54,7 +55,7 @@ DataSet <- R6::R6Class(
             if (!is.list(preprocs) && "Preprocessor" %in% class(preprocs)) preprocs <- list(preprocs)
             if (rhaskell::any(function(x) !("Preprocessor" %in% class(x)), preprocs))
                 stop("Expecting a list of @Preprocessor@ objects in Dataset$preprocess(..)")
-            oldDs <- ds$clone(deep = TRUE) # we create a new node to refer back to the old state. This way the user does not have to change the variable pointing to the @DataSet@.
+            oldDs <- self$clone(deep = TRUE) # we create a new node to refer back to the old state. This way the user does not have to change the variable pointing to the @DataSet@.
             preprocsTxt <- paste(rhaskell::map(getR6ClassName, preprocs), collapse = ", ")
             ndProc <- NodeProcessor$new(paste("Preprocessing:", preprocsTxt))
             ndProc$parent <- oldDs
@@ -65,10 +66,10 @@ DataSet <- R6::R6Class(
                 inputValues <- rhaskell::map(rhaskell::comp(function(v) v$vals, self$getVariable), inputNames)
                 newVar <- prep$preprocess(inputValues)
                 ## Add new variable(s)
-                rhaskell::mapM_(ds$addVariable, prep$additionalResultVars) # intermediate results
-                ds$addVariable(newVar)                                     # final variable
+                rhaskell::mapM_(self$addVariable, prep$additionalResultVars) # intermediate results
+                self$addVariable(newVar)                                     # final variable
                 if (prep$deleteInputVars) {
-                    rhaskell::mapM_(ds$removeVariable, inputNames)
+                    rhaskell::mapM_(self$removeVariable, inputNames)
                 }
             }
         }

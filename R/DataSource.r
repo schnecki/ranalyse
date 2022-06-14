@@ -13,12 +13,15 @@ DataSource <- R6::R6Class(
     private = list(
 
         .xVarName = NULL,                           # string
-        .variableDesc = Dict$new(a = NULL)$clear(), # Dict<string, string>
-        .columns = Dict$new(a = NULL)$clear(),      # Dict<string, Vector>
+        .variableDesc = NULL,                       # Dict<string, string>
+        .columns = NULL,                            # Dict<string, Vector>
 
         ## Private functions
         addColumn = function(name, data) {
             self$columns[name] <- as.vector(data)
+        },
+        .getDefaultDesc = function() {
+            return("DataSource")
         }
     ),
 
@@ -29,6 +32,9 @@ DataSource <- R6::R6Class(
         initialize = function(xVarName, variableDesc = NULL, desc = NULL) {
             super$initialize(desc)
             self$xVarName <- xVarName
+            self$variableDesc <- Dict$new(a = NULL)$clear()
+            self$columns <- Dict$new(a = NULL)$clear()
+
             if (is.null(variableDesc))
                 warning("No `variableDesc` given in `DataSource$initialize(..)`, hence using all available variables with empty description.")
             else if (!rhaskell::all(function(x) length(x) == 2, variableDesc))
@@ -64,7 +70,8 @@ DataSource <- R6::R6Class(
             ndProc <- NodeProcessor$new(paste0("Creating DataSource. Y-Vars: ", length(vars), "/", self$columns$length, ". X-Var: ", xVarSrc, ". ", dataCutTxt))
             ndProc$parent <- self
             ## DataSet node
-            ds <- DataSet$new(paste("Dataset, x-Var:", self$xVarName), xVar)
+            desc <- paste0(getR6ClassName(self), ": ", private$.getDefaultDesc())
+            ds <- DataSet$new(paste("Dataset, x-Var:", self$xVarName), xVar, desc)
             ds$parent <- ndProc
             return(rhaskell::foldl(function(d, v) d$addVariable(v), ds, vars))
         }
