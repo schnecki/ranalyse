@@ -9,9 +9,9 @@ DataSet <- R6::R6Class(
 
     ## Properties
     private = list(
-        .name = NULL,  # character
-        .xVar = NULL,  # Variable
-        .yVars = NULL  # Dict<Vars>, cannot create empty Dict() ^^
+        .name = NULL,      # character
+        .xVar = NULL,      # Variable
+        .yVars = NULL      # Dict<Vars>
     ),
 
     ## Methods
@@ -21,6 +21,12 @@ DataSet <- R6::R6Class(
             self$name <- name
             self$xVar <- xVar
             self$yVars <- Dict$new(a = NULL)$clear()
+        },
+        asDataFrame = function() {
+            yVals <- rhaskell::map(function(y) y$vals, self$yVars$values)
+            df <- data.frame(rhaskell::cons(self$xVar$vals, yVals), row.names = 1)
+            names(df) <- unlist(self$yVars$keys)
+            return(df)
         },
         addVariablesFromDataFrame = function(df, columns = names(df)) {
             if (!("data.frame" %in% class(df))) stop("Not a `data.frame` in DataSet$addFromDataFrame(..)")
@@ -105,3 +111,12 @@ DataSet <- R6::R6Class(
     )
 
 )
+
+
+## # S3 method for as.data.frame
+## DataSet$set("public", "as.data.frame", function() {
+##     ## as.data.frame(x, row.names = NULL, optional = FALSE, ...,
+##     ##               cut.names = FALSE, col.names = names(x), fix.empty.names = TRUE,
+##     ##               stringsAsFactors = default.stringsAsFactors())
+
+## })
