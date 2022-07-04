@@ -23,7 +23,8 @@ PreprocessorSum <- R6::R6Class(
     ## Methods
     public = list(
         initialize = function(outputName, inputNames, deleteInputVars = FALSE, nodeDesc = NULL) {
-            if (is.null(nodeDesc)) nodeDesc <- paste0(outputName, " <- Sum(", paste0(inputNames, collapse = ", "), ")")
+            self$inputNames <- inputNames
+            if (is.null(nodeDesc)) nodeDesc <- paste0(outputName, " <- ", private$.getDefaultDesc())
             super$initialize(outputName, inputNames, deleteInputVars, nodeDesc)
         }
     )

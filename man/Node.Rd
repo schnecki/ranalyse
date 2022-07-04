@@ -19,7 +19,7 @@ This class defines a basis
 \if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Node$new(desc, parent)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Node$new(desc)}\if{html}{\out{</div>}}
 }
 
 }

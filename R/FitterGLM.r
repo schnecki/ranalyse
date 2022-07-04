@@ -15,7 +15,7 @@ FitterGLM <- R6::R6Class(
             return(getR6ClassName(self))
         },
         .fit = function(formula) {
-            return(glm(formula, family = self$family, data = self.data, na.action = self$na.action))
+            return(glm(formula, family = self$family, data = self$data, na.action = self$na.action))
         }
 
 

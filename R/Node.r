@@ -32,7 +32,7 @@ Node <- R6::R6Class(
     active = list(
         parent = function(value) {
             if (missing(value)) return(private$.parent)
-            if (!("Node" %in% class(value)))
+            if (!(is.null(value) || "Node" %in% class(value)))
                 propError("parent", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.parent <- value
             private$.parent$addChild(self)
@@ -53,6 +53,17 @@ Node <- R6::R6Class(
             return(self)
         },
         isProcessNode = function() FALSE
-    )
-
+    ),
+    cloneable = FALSE
 )
+
+
+## Prevent cloning the parents, otherwise it never stops
+Node$set("public", "clone", function(deep = TRUE) {
+    parent <- self$parent
+    self$parent <- NULL
+    clone <- self$clone(deep)
+    self$parent <- parent
+    clone$parent <- parent
+    return(clone)
+})

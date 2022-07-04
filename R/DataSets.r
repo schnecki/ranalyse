@@ -29,7 +29,7 @@ DataSets <- R6::R6Class(
                 warning("In DataSets$new(..) the xVar *names* are different. Using the first given xVar-name")
             self$xVar <- rhaskell::head(datasets)$xVar
         },
-        createCoreModelsFor = function(outcomes, fitters, formulas) {
+        createCoreModelsFor = function(outcomes, fitters, formulas, adaptions, selection) {
             if (!base::is.list(outcomes)) outcomes <- list(outcomes)
             if (!base::is.list(fitters)) fitters <- list(fitters)
             if (!base::is.list(formulas)) formulas <- list(formulas)
@@ -39,14 +39,14 @@ DataSets <- R6::R6Class(
                     fitter$data <- df # set data frame
                     for (y in outcomes) {
                         for (formula in formulas) {
-                            fit <- fitter$fit(paste(y, "~", formula)) # fit model
+                            ##:ess-bp-start::conditional@:##
+browser(expr={TRUE})##:ess-bp-end:##
+                            fit <- fitter$fit(paste(y, formula)) # fit model
                             ## ds$addCoreModel(y, DataCoreModel$new(...))
                         }
                     }
                 }
             }
-            ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
             stop("TODO: save to set of core models?")
         }
     ),

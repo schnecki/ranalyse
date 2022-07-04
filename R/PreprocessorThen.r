@@ -14,6 +14,8 @@ PreprocessorThen <- R6::R6Class(
 
         ## Processor function
         .process = function(inputValues) {
+            self$prepFirst$dataset <- self$dataset
+            self$prepSecond$dataset <- self$dataset
             inputValuesFirst <- rhaskell::take(length(self$prepFirst$inputNames), inputValues)
             output1 <- self$prepFirst$preprocess(inputValuesFirst)
             if (!self$prepSecond$deleteInputVars)
@@ -43,12 +45,12 @@ PreprocessorThen <- R6::R6Class(
     public = list(
         #' TODO: support multiple first and/or second nodes
         initialize = function(prepFirst, prepSecond, nodeDesc = NULL) {
-            if (is.null(nodeDesc))
-                nodeDesc <- paste0(prepSecond$outputName, " <- ", getR6ClassName(prepFirst), "(", paste(prepFirst$inputNames, collapse = ", "), ")",
-                                   " >>= function(", prepFirst$outputName, ") ", getR6ClassName(prepSecond), "(", paste(prepSecond$inputNames, collapse = ", "), ")")
-            super$initialize(prepSecond$outputName, base::append(prepFirst$inputNames, rhaskell::delete(prepFirst$outputName, prepSecond$inputNames)), prepFirst$deleteInputVars, nodeDesc)
+            inputNames <- base::append(prepFirst$inputNames, rhaskell::delete(prepFirst$outputName, prepSecond$inputNames))
+            self$inputNames <- inputNames
             self$prepFirst <- prepFirst
             self$prepSecond <- prepSecond
+            if (is.null(nodeDesc)) nodeDesc <- paste0(prepSecond$outputName, " <- ", private$.getDefaultDesc())
+            super$initialize(prepSecond$outputName, inputNames, prepFirst$deleteInputVars, nodeDesc)
         }
     ),
 
@@ -69,5 +71,21 @@ PreprocessorThen <- R6::R6Class(
             private$.prepSecond <- value
             return(self)
         }
-    )
+    ),
+    cloneable = FALSE
 )
+
+
+## Prevent cloning the parents, otherwise it never stops
+PreprocessorThen$set("public", "clone", function(deep = TRUE) {
+    prFirst <- self$prepFirst$parent
+    prSecond <- self$prepSecond$parent
+    self$prepFirst$parent <- NULL
+    self$prepSecond$parent <- NULL
+    clone <- self$clone(deep)
+    self$prepFirst$parent <- prFirst
+    self$prepSecond$parent <- prSecond
+    clone$prepFirst$parent <- clone
+    clone$prepSecond$parent <- clone
+    return(clone)
+})

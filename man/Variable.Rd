@@ -4,7 +4,9 @@
 \alias{Variable}
 \title{Variable that will be present in output tree}
 \description{
-This class defines a basis
+Variable that will be present in output tree
+
+Variable that will be present in output tree
 }
 \section{Super class}{
 \code{\link[ranalyse:Node]{ranalyse::Node}} -> \code{Variable}
@@ -28,7 +30,7 @@ This class defines a basis
 \if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Variable$new(name, vals)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Variable$new(name, vals, desc = NULL)}\if{html}{\out{</div>}}
 }
 
 }
@@ -38,7 +40,7 @@ This class defines a basis
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Variable$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Variable$clone(deep = TRUE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

@@ -27,7 +27,8 @@ Imports:
   utils,
   mgcv,
   tsModel,
-  ggplot2
+  ggplot2,
+  dlnm
 Depends: R (>= 3.2)
 License: file LICENSE
 Encoding: UTF-8

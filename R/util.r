@@ -42,3 +42,14 @@ getR6ClassName <- function(x, n.parent = 0) {
 getR6Class <- function(x, n.parent = 0) {
     return(get(class(x)[[n.parent + 1]], -1))
 }
+
+
+#' Check if function is integer
+#'
+#' @param x        number
+#' @return Bool
+#'
+#' @export is.integer
+is.integer <- function(x) {
+    return(base::is.numeric(x) && round(x) == x)
+}

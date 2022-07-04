@@ -14,8 +14,8 @@ VariableBoolean <- R6::R6Class(
 
     ## Methods
     public = list(
-        initialize = function(name, vals) {
-            super$initialize(name, vals)
+        initialize = function(name, vals, desc = NULL) {
+            super$initialize(name, vals, desc)
         }
     ),
 

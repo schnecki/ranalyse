@@ -6,29 +6,109 @@
 \description{
 This class defines a basis
 }
+\section{Super class}{
+\code{\link[ranalyse:Node]{ranalyse::Node}} -> \code{DataSet}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{DataSet$new()}}
-\item \href{#method-addFromDataFrame}{\code{DataSet$addFromDataFrame()}}
+\item \href{#method-asDataFrame}{\code{DataSet$asDataFrame()}}
+\item \href{#method-addVariablesFromDataFrame}{\code{DataSet$addVariablesFromDataFrame()}}
+\item \href{#method-addVariableFromData}{\code{DataSet$addVariableFromData()}}
+\item \href{#method-addVariable}{\code{DataSet$addVariable()}}
+\item \href{#method-getVariable}{\code{DataSet$getVariable()}}
+\item \href{#method-removeVariable}{\code{DataSet$removeVariable()}}
+\item \href{#method-deleteVariable}{\code{DataSet$deleteVariable()}}
+\item \href{#method-preprocess}{\code{DataSet$preprocess()}}
 \item \href{#method-clone}{\code{DataSet$clone()}}
 }
+}
+\if{html}{
+\out{<details open ><summary>Inherited methods</summary>}
+\itemize{
+\item \out{<span class="pkg-link" data-pkg="ranalyse" data-topic="Node" data-id="addChild">}\href{../../ranalyse/html/Node.html#method-addChild}{\code{ranalyse::Node$addChild()}}\out{</span>}
+}
+\out{</details>}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
 \if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DataSet$new(name, xVar, data = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DataSet$new(name, xVar, desc = NULL)}\if{html}{\out{</div>}}
 }
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-addFromDataFrame"></a>}}
-\if{latex}{\out{\hypertarget{method-addFromDataFrame}{}}}
-\subsection{Method \code{addFromDataFrame()}}{
+\if{html}{\out{<a id="method-asDataFrame"></a>}}
+\if{latex}{\out{\hypertarget{method-asDataFrame}{}}}
+\subsection{Method \code{asDataFrame()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DataSet$addFromDataFrame(df)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DataSet$asDataFrame()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-addVariablesFromDataFrame"></a>}}
+\if{latex}{\out{\hypertarget{method-addVariablesFromDataFrame}{}}}
+\subsection{Method \code{addVariablesFromDataFrame()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataSet$addVariablesFromDataFrame(df, columns = names(df))}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-addVariableFromData"></a>}}
+\if{latex}{\out{\hypertarget{method-addVariableFromData}{}}}
+\subsection{Method \code{addVariableFromData()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataSet$addVariableFromData(name, data, varDesc = NULL)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-addVariable"></a>}}
+\if{latex}{\out{\hypertarget{method-addVariable}{}}}
+\subsection{Method \code{addVariable()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataSet$addVariable(var)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-getVariable"></a>}}
+\if{latex}{\out{\hypertarget{method-getVariable}{}}}
+\subsection{Method \code{getVariable()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataSet$getVariable(varName)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-removeVariable"></a>}}
+\if{latex}{\out{\hypertarget{method-removeVariable}{}}}
+\subsection{Method \code{removeVariable()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataSet$removeVariable(varName, stopIfExists = TRUE)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-deleteVariable"></a>}}
+\if{latex}{\out{\hypertarget{method-deleteVariable}{}}}
+\subsection{Method \code{deleteVariable()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataSet$deleteVariable(...)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-preprocess"></a>}}
+\if{latex}{\out{\hypertarget{method-preprocess}{}}}
+\subsection{Method \code{preprocess()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DataSet$preprocess(preprocs)}\if{html}{\out{</div>}}
 }
 
 }

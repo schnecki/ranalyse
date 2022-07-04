@@ -21,8 +21,8 @@ Fitter <- R6::R6Class(
             ## stop("This function must be overwritten by implementing `Fitter` classes")
         },
         .fit = function() {
-            ## Override in impelmenting class, ensure to use `data = self.data`.
-            stop("This function must be overwritten by implementing `Fitter` classes. Ensure to set `data = self.data`")
+            ## Override in impelmenting class, ensure to use `data = self$data`.
+            stop("This function must be overwritten by implementing `Fitter` classes. Ensure to set `data = self$data`")
         }
     ),
 
@@ -34,7 +34,7 @@ Fitter <- R6::R6Class(
             self$akaikeFun <- akaikeFun
 
         },
-        fit = function(formula) {
+        fit = function(formula, failOneError = TRUE) {
             ## Do NOT OVERRIDE this method implementing the interface!
             ## fit a model using private `.fit` method.
 
@@ -48,6 +48,8 @@ Fitter <- R6::R6Class(
                 return(res)
             }, error = function(cond) {
                 self$converged <- FALSE
+                warning(cond)
+                if (failOneError) stop(cond)
                 return(NULL)
             })
 

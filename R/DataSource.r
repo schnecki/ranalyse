@@ -1,10 +1,9 @@
-#' @importFrom rhaskell %.%
-
 #' DataSource interface.
 #'
 #' This class defines a `DataSource`.
 #' @export DataSource
 #' @exportClass DataSource
+#' @importFrom rhaskell %.%
 DataSource <- R6::R6Class(
     classname = "DataSource",
     inherit = Node,

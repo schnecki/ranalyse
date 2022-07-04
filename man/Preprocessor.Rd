@@ -6,29 +6,64 @@
 \description{
 This class defines a basis
 }
+\section{Super classes}{
+\code{\link[ranalyse:Node]{ranalyse::Node}} -> \code{\link[ranalyse:NodeProcessor]{ranalyse::NodeProcessor}} -> \code{Preprocessor}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{Preprocessor$new()}}
-\item \href{#method-process}{\code{Preprocessor$process()}}
+\item \href{#method-then}{\code{Preprocessor$then()}}
+\item \href{#method-preprocess}{\code{Preprocessor$preprocess()}}
 \item \href{#method-clone}{\code{Preprocessor$clone()}}
 }
+}
+\if{html}{
+\out{<details open ><summary>Inherited methods</summary>}
+\itemize{
+\item \out{<span class="pkg-link" data-pkg="ranalyse" data-topic="Node" data-id="addChild">}\href{../../ranalyse/html/Node.html#method-addChild}{\code{ranalyse::Node$addChild()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="ranalyse" data-topic="NodeProcessor" data-id="addProcessor">}\href{../../ranalyse/html/NodeProcessor.html#method-addProcessor}{\code{ranalyse::NodeProcessor$addProcessor()}}\out{</span>}
+}
+\out{</details>}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
 \if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Preprocessor$new(x, y, name)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Preprocessor$new(
+  outputName,
+  inputNames,
+  deleteInputVars = FALSE,
+  nodeDesc = NULL
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{inputValues}}{Input values to be processed
+Default description for new @Variable@. Should be overwritten by class implementation.
+Execute preprocessor and return new @Variable@.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-then"></a>}}
+\if{latex}{\out{\hypertarget{method-then}{}}}
+\subsection{Method \code{then()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Preprocessor$then(prep)}\if{html}{\out{</div>}}
 }
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-process"></a>}}
-\if{latex}{\out{\hypertarget{method-process}{}}}
-\subsection{Method \code{process()}}{
+\if{html}{\out{<a id="method-preprocess"></a>}}
+\if{latex}{\out{\hypertarget{method-preprocess}{}}}
+\subsection{Method \code{preprocess()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Preprocessor$process()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Preprocessor$preprocess(inputValues)}\if{html}{\out{</div>}}
 }
 
 }
