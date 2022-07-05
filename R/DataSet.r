@@ -67,8 +67,6 @@ DataSet <- R6::R6Class(
             ndProc$parent <- oldDs
             self$parent <- ndProc
             for (prepObj in preprocs) {
-                ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
                 prep <- prepObj$clone(deep = TRUE) # make a clone in case it is used more than once
                 prep$parent <- ndProc
                 inputNames <- prep$inputNames

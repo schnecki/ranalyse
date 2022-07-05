@@ -10,7 +10,7 @@ DataSource <- R6::R6Class(
 
     ## Properties
     private = list(
-
+        .name = NULL,                               # string
         .xVarName = NULL,                           # string
         .variableDesc = NULL,                       # Dict<string, string>
         .columns = NULL,                            # Dict<string, Vector>
@@ -28,8 +28,9 @@ DataSource <- R6::R6Class(
     public = list(
         #' @param xVarName character Name of x-column, must be inside `variableDesc`.
         #' @param variableDesc sets::tuple A tuple of variable names with descriptions. E.g. `sets::tuple(name = "varName", desc = "varirable Description")`
-        initialize = function(xVarName, variableDesc = NULL, desc = NULL) {
+        initialize = function(xVarName, variableDesc = NULL, name = NULL, desc = NULL) {
             super$initialize(desc)
+            self$name <- name
             self$xVarName <- xVarName
             self$variableDesc <- Dict$new(a = NULL)$clear()
             self$columns <- Dict$new(a = NULL)$clear()
@@ -70,7 +71,9 @@ DataSource <- R6::R6Class(
             ndProc$parent <- self
             ## DataSet node
             desc <- paste0(getR6ClassName(self), ": ", private$.getDefaultDesc())
-            ds <- DataSet$new(paste("Dataset, x-Var:", self$xVarName), xVar, desc)
+            dsName <- self$name
+            if (is.null(dsName)) dsName <- paste("Dataset with x:", self$xVarName)
+            ds <- DataSet$new(dsName, xVar, desc)
             ds$parent <- ndProc
             return(rhaskell::foldl(function(d, v) d$addVariable(v), ds, vars))
         }
@@ -79,6 +82,13 @@ DataSource <- R6::R6Class(
     ## Accessable properties. Active bindings look like fields, but each time they are accessed,
     ## they call a function. They are always publicly visible.
     active = list(
+        name = function(value) {
+            if (missing(value)) return(private$.name)
+            if (!(base::is.character(value) || base::is.null(value)))
+                stop("ERROR: Unallowed property ", value, " for 'name' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+            private$.name <- value
+            return(self)
+        },
         xVarName = function(value) {
             if (missing(value)) return(private$.xVarName)
             if (!(base::is.character(value)))

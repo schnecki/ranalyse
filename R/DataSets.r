@@ -31,23 +31,28 @@ DataSets <- R6::R6Class(
         },
         createCoreModelsFor = function(outcomes, fitters, formulas, adaptions, selection) {
             if (!base::is.list(outcomes)) outcomes <- list(outcomes)
-            if (!base::is.list(fitters)) fitters <- list(fitters)
+            if (!base::is.list(fitters))  fitters  <- list(fitters)
             if (!base::is.list(formulas)) formulas <- list(formulas)
+            coreModels <- CoreModelSelectors$new(paste0("Possible Core Models for DataSets of '", self$name, "'"), self)
+
             for (ds in self$datasets) {
                 df <- ds$asDataFrame() # create data frame
-                for (fitter in fitters) {
-                    fitter$data <- df # set data frame
-                    for (y in outcomes) {
+                for (y in outcomes) {
+                    analysis <- CoreModelSelector$new(paste(ds$name, y), ds)
+                    for (fitter in fitters) {
                         for (formula in formulas) {
-                            ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
+                            fitter$data <- df                    # set data frame
                             fit <- fitter$fit(paste(y, formula)) # fit model
-                            ## ds$addCoreModel(y, DataCoreModel$new(...))
+                            analysis$addPossibleCoreModel(ds, fit)
                         }
                     }
+                    if (!analysis$hasAnyConvergedModel()) {
+                        stop("No core model for dataset '", ds$name, "' and '", y, "' converge. Cannot proceed")
+                    }
+                    coreModels$addCoreModelSelector(analysis)
                 }
             }
-            stop("TODO: save to set of core models?")
+            return(coreModels)
         }
     ),
 

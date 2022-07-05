@@ -78,14 +78,10 @@ PreprocessorThen <- R6::R6Class(
 
 ## Prevent cloning the parents, otherwise it never stops
 PreprocessorThen$set("public", "clone", function(deep = TRUE) {
-    prFirst <- self$prepFirst$parent
-    prSecond <- self$prepSecond$parent
     self$prepFirst$parent <- NULL
     self$prepSecond$parent <- NULL
-    clone <- self$clone(deep)
-    self$prepFirst$parent <- prFirst
-    self$prepSecond$parent <- prSecond
-    clone$prepFirst$parent <- clone
-    clone$prepSecond$parent <- clone
+    clone <- PreprocessorThen$new(self$prepFirst$clone(deep = deep), self$prepSecond$clone(deep = deep), self$nodeDesc)
+    self$prepFirst$parent <- self
+    self$prepSecond$parent <- self
     return(clone)
 })

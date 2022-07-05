@@ -35,7 +35,8 @@ Node <- R6::R6Class(
             if (!(is.null(value) || "Node" %in% class(value)))
                 propError("parent", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.parent <- value
-            private$.parent$addChild(self)
+            if (!is.null(value))
+                private$.parent$addChild(self)
             return(self)
         },
         childs = function(value) {
@@ -58,12 +59,12 @@ Node <- R6::R6Class(
 )
 
 
-## Prevent cloning the parents, otherwise it never stops
-Node$set("public", "clone", function(deep = TRUE) {
-    parent <- self$parent
-    self$parent <- NULL
-    clone <- self$clone(deep)
-    self$parent <- parent
-    clone$parent <- parent
-    return(clone)
-})
+## ## Prevent cloning the parents, otherwise it never stops
+## Node$set("public", "clone", function(deep = TRUE) {
+##     parent <- self$parent
+##     self$parent <- NULL
+##     clone <- self$clone(deep)
+##     self$parent <- parent
+##     clone$parent <- parent
+##     return(clone)
+## })

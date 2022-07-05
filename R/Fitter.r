@@ -45,7 +45,7 @@ Fitter <- R6::R6Class(
                 res <- private$.fit(formula)
                 self$converged <- TRUE
                 self$akaike <- self$akaikeFun(res)
-                return(res)
+                res
             }, error = function(cond) {
                 self$converged <- FALSE
                 warning(cond)

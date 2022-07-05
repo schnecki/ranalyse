@@ -20,6 +20,11 @@ propError <- function(name, value, srcFile, srcLoc) {
 ## }
 ##
 
+#' Function to check if the model is supported/known. And we can work with it.
+isSupportedModel <- function(x) {
+    return("glm" %in% class(x))
+}
+
 
 #' Return the classname of an R6 object
 #'
