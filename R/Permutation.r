@@ -4,7 +4,7 @@
 #' @exportClass Permutation
 Permutation <- R6::R6Class(
     classname = "Permutation",
-    ## inherit = Option, # Every variable is a node
+    ## inherit = Literal, # Every variable is a node
 
     ## Properties
     private = list(
@@ -15,7 +15,7 @@ Permutation <- R6::R6Class(
     public = list(
         initialize = function(...) {
             args <- list(...)
-            inputs <- rhaskell::map(Option$mkOption, args)
+            inputs <- rhaskell::map(Literal$mkLiteral, args)
             ##:ess-bp-start::conditional@:##
 browser(expr={TRUE})##:ess-bp-end:##
             if (length(args) < 1) stop("Permutation$new(..) expects at least one input argument!")
@@ -27,7 +27,7 @@ browser(expr={TRUE})##:ess-bp-end:##
     active = list(
         options = function(value) {
             if (missing(value)) return(private$.options)
-            if (!(base::is.list(value) && rhaskell::all(function(x) "Option" %in% class(x), value)))
+            if (!(base::is.list(value) && rhaskell::all(function(x) "Literal" %in% class(x), value)))
                 propError("options", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.options <- value
             return(self)

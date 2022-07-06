@@ -1,14 +1,13 @@
-#' EitherOr interface.
+#' And interface.
 #'
-#' @export EitherOr
-#' @exportClass EitherOr
-EitherOr <- R6::R6Class(
-    classname = "EitherOr",
+#' @export And
+#' @exportClass And
+And <- R6::R6Class(
+    classname = "And",
     inherit = BoolAlgebra,
 
     ## Properties
     private = list(
-        .options = NULL
     ),
 
     ## Methods
@@ -18,7 +17,7 @@ EitherOr <- R6::R6Class(
             self$options <- rhaskell::map(Literal$mkLiteral, args)
         },
         toOrList = function() { # returns a list of disjunctions
-            stop("Needs to be implemented")
+            return(list(self$input))
         }
 
     ),

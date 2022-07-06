@@ -1,9 +1,9 @@
-#' Option interface.
+#' Literal interface.
 #'
-#' @export Option
-#' @exportClass Option
-Option <- R6::R6Class(
-    classname = "Option",
+#' @export Literal
+#' @exportClass Literal
+Literal <- R6::R6Class(
+    classname = "Literal",
 
     ## Properties
     private = list(
@@ -27,7 +27,7 @@ Option <- R6::R6Class(
     active = list(
         object = function(value) {
             if (missing(value)) return(private$.object)
-            if (("Option" %in% class(value)))
+            if (("Literal" %in% class(value)))
                 propError("object", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.object <- value
             return(self)
@@ -37,10 +37,10 @@ Option <- R6::R6Class(
 )
 
 
-Option$mkOption <- function(obj) {
-    if ("Option" %in% class(obj)) {
+Literal$mkLiteral <- function(obj) {
+    if ("Literal" %in% class(obj)) {
         return(obj)
     } else {
-        return(Option$new(obj))
+        return(Literal$new(obj))
     }
 }
