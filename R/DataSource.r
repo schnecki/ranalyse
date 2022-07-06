@@ -32,9 +32,8 @@ DataSource <- R6::R6Class(
             super$initialize(desc)
             self$name <- name
             self$xVarName <- xVarName
-            self$variableDesc <- Dict$new(a = NULL)$clear()
-            self$columns <- Dict$new(a = NULL)$clear()
-
+            self$variableDesc <- Dict::Dict$new(a = NULL)$clear()
+            self$columns <- Dict::Dict$new(a = NULL)$clear()
             if (is.null(variableDesc))
                 warning("No `variableDesc` given in `DataSource$initialize(..)`, hence using all available variables with empty description.")
             else if (!rhaskell::all(function(x) length(x) == 2, variableDesc))

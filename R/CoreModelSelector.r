@@ -10,13 +10,17 @@ CoreModelSelector <- R6::R6Class(
 
     ## Properties
     private = list(
+        .name = NULL,        # character
+        .dataset = NULL,     # DataSet
         .coreModels = list() # list<Fitter>. possible core models
     ),
 
     ## Methods
     public = list(
-        initialize = function(name, dataset, model, desc = NULL) {
-            ## super$initialize(name, dataset, model, desc)
+        initialize = function(name, dataset, desc = NULL) {
+            super$initialize(desc)
+            self$name <- name
+            self$dataset <- dataset
         },
         addPossibleCoreModel = function(fitter) {
             if (!"Fitter" %in% class(fitter)) stop("'addPossibleCoreModel' only takes objects of class 'Fitter'! Saw: ", class(fitter))
@@ -36,6 +40,20 @@ CoreModelSelector <- R6::R6Class(
     ## Accessable properties. Active bindings look like fields, but each time they are accessed,
     ## they call a function. They are always publicly visible.
     active = list(
+        name = function(value) {
+            if (missing(value)) return(private$.name)
+            if (!(base::is.character(value)))
+                propError("name", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+            private$.name <- value
+            return(self)
+        },
+        dataset = function(value) {
+            if (missing(value)) return(private$.dataset)
+            if (!("DataSet" %in% class(value)))
+                propError("dataset", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+            private$.dataset <- value
+            return(self)
+        },
         coreModels = function(value) {
             if (missing(value)) return(private$.coreModels)
             if (!(base::is.list(value) && rhaskell::all(function(x) "Fitter" %in% class(x), value)))

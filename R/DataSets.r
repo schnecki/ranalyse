@@ -38,18 +38,18 @@ DataSets <- R6::R6Class(
             for (ds in self$datasets) {
                 df <- ds$asDataFrame() # create data frame
                 for (y in outcomes) {
-                    analysis <- CoreModelSelector$new(paste(ds$name, y), ds)
+                    selector <- CoreModelSelector$new(paste(ds$name, y), ds)
                     for (fitter in fitters) {
                         for (formula in formulas) {
                             fitter$data <- df                    # set data frame
                             fit <- fitter$fit(paste(y, formula)) # fit model
-                            analysis$addPossibleCoreModel(ds, fit)
+                            selector$addPossibleCoreModel(fit)
                         }
                     }
-                    if (!analysis$hasAnyConvergedModel()) {
+                    if (!selector$hasAnyConvergedModel()){
                         stop("No core model for dataset '", ds$name, "' and '", y, "' converge. Cannot proceed")
                     }
-                    coreModels$addCoreModelSelector(analysis)
+                    coreModels$addCoreModelSelector(y, selector)
                 }
             }
             return(coreModels)

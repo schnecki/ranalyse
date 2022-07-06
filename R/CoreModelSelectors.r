@@ -22,20 +22,26 @@ CoreModelSelectors <- R6::R6Class(
             super$initialize(desc)
             self$name <- name
             self$datasets <- datasets
-            self$coreModelSelectors <- Dict$new(a = NULL)$clear()
+            self$coreModelSelectors <- Dict::Dict$new(a = NULL)$clear()
         },
-        addCoreModelSelector = function(ds, sel) {
+        addCoreModelSelector = function(outcome, sel) {
             if (!"CoreModelSelector" %in% class(sel)) stop("You are attempting to add non-CoreModelSelector object to CoreModelSelectors!")
-            ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
-            stop("Change to Dict!!!")
-            if (self$coreModelSelectors$has(ds$name)) ..
-            ## self$variableDesc[tpl[[1]]] <- tpl[[2]]
-            ## self$yVars[var$name] <- var
-
-            self$coreModelSelectors <- base::append(self$coreModelSelectors, list(sel))
+            dsHash <- hash(sel$dataset)
+            if (self$coreModelSelectors$has(dsHash)) {
+                inner <- self$coreModelSelectors$get(dsHash)
+                if (inner$has(outcome)) {
+                    inner[outcome] <- base::append(inner$get(outcome), list(sel))
+                } else {
+                    inner[outcome] <- list(sel)
+                }
+            } else {
+                inner <- Dict::Dict$new(a = NULL)$clear()
+                inner[outcome] <- list(sel)
+                self$coreModelSelectors[dsHash] <- inner
+            }
             self$addChild(sel)
-        }
+        },
+
     ),
 
     ## Accessable properties. Active bindings look like fields, but each time they are accessed,

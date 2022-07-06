@@ -20,7 +20,7 @@ Analyses <- R6::R6Class(
             super$initialize(desc)
             self$name <- name
             self$datasets <- datasets
-            self$analyses <- Dict$new(a = NULL)$clear()
+            self$analyses <- Dict::Dict$new(a = NULL)$clear()
 
         },
         addAnalysis = function(analysis) {

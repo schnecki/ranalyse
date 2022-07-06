@@ -20,7 +20,7 @@ DataSet <- R6::R6Class(
             super$initialize(desc)
             self$name <- name
             self$xVar <- xVar
-            self$yVars <- Dict$new(a = NULL)$clear()
+            self$yVars <- Dict::Dict$new(a = NULL)$clear()
         },
         asDataFrame = function() {
             yVals <- rhaskell::map(function(y) y$vals, self$yVars$values)

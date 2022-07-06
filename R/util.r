@@ -20,9 +20,14 @@ propError <- function(name, value, srcFile, srcLoc) {
 ## }
 ##
 
-#' Function to check if the model is supported/known. And we can work with it.
-isSupportedModel <- function(x) {
-    return("glm" %in% class(x))
+# ' Function to check if the model is supported/known. And we can work with it.
+## isSupportedModel <- function(x) {
+##     return("glm" %in% class(x))
+## }
+
+
+hash <- function(x) {
+    return(digest::digest(x, algo = "xxhash32"))
 }
 
 
