@@ -4,7 +4,7 @@
 #' @exportClass Permutation
 Permutation <- R6::R6Class(
     classname = "Permutation",
-    ## inherit = Literal, # Every variable is a node
+    inherit = BoolAlgebra, # Every variable is a node
 
     ## Properties
     private = list(
@@ -14,11 +14,10 @@ Permutation <- R6::R6Class(
     ## Methods
     public = list(
         initialize = function(...) {
-            args <- list(...)
-            inputs <- rhaskell::map(Literal$mkLiteral, args)
-            ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
-            if (length(args) < 1) stop("Permutation$new(..) expects at least one input argument!")
+            super$initialize(...)
+        },
+        toOrList = function() {
+            input
         }
     ),
 

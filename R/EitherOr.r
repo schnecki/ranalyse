@@ -1,9 +1,9 @@
-#' EitherOr interface.
+#' rOr interface.
 #'
-#' @export EitherOr
-#' @exportClass EitherOr
-EitherOr <- R6::R6Class(
-    classname = "EitherOr",
+#' @export Or
+#' @exportClass Or
+Or <- R6::R6Class(
+    classname = "Or",
     inherit = BoolAlgebra,
 
     ## Properties
@@ -14,11 +14,13 @@ EitherOr <- R6::R6Class(
     ## Methods
     public = list(
         initialize = function(...) {
-            args <- list(...)
-            self$options <- rhaskell::map(Literal$mkLiteral, args)
+            super$initialize(...)
         },
-        toOrList = function() { # returns a list of disjunctions
-            stop("Needs to be implemented")
+        toOrAndList = function() { # returns a list of disjunctions
+            ##:ess-bp-start::conditional@:##
+browser(expr={TRUE})##:ess-bp-end:##
+            res <- rhaskell::map(function(x) x$toOrAndList(), self$input)
+            return(res)
         }
 
     ),
@@ -26,13 +28,6 @@ EitherOr <- R6::R6Class(
     ## Accessable properties. Active bindings look like fields, but each time they are accessed,
     ## they call a function. They are always publicly visible.
     active = list(
-        options = function(value) {
-            if (missing(value)) return(private$.options)
-            if (!(base::is.list(value) && rhaskell::all(function(x) "Literal" %in% class(x), value)))
-                propError("options", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
-            private$.options <- value
-            return(self)
-        }
 
     )
 )

@@ -13,7 +13,7 @@ Or <- R6::R6Class(
     ## Methods
     public = list(
         initialize = function(...) {
-            super()$initialize(...)
+            super$initialize(...)
         },
         toOrList = function() {
             return(rhaskell::map(base::list, self$input))

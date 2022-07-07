@@ -13,10 +13,9 @@ And <- R6::R6Class(
     ## Methods
     public = list(
         initialize = function(...) {
-            args <- list(...)
-            self$options <- rhaskell::map(Literal$mkLiteral, args)
+            super$initialize(...)
         },
-        toOrList = function() { # returns a list of disjunctions
+        toOrAndList = function() { # returns a list of disjunctions
             return(list(self$input))
         }
 
