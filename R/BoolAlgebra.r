@@ -1,4 +1,4 @@
-#' BoolAlgebra interface.
+' BoolAlgebra interface.
 #'
 #' @export BoolAlgebra
 #' @exportClass BoolAlgebra
@@ -16,7 +16,7 @@ BoolAlgebra <- R6::R6Class(
             args <- list(...)
             self$input <- rhaskell::map(Literal$mkLiteral, args)
         },
-        toOrList = function() { # returns a list of disjunctions
+        toOrAndList = function() { # returns a list of disjunctions eich containing conjuntions of literals
             stop("Needs to be implemented")
         }
 
@@ -27,6 +27,11 @@ BoolAlgebra <- R6::R6Class(
     active = list(
         input = function(value) {
             if (missing(value)) return(private$.input)
+            private$.input <- value
+            return(self)
+        },
+        orList = function(value) {
+            if (missing(value)) return(private$.orList)
             if (!(base::is.list(value) && rhaskell::all(function(x) "Literal" %in% class(x), value)))
                 propError("input", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.input <- value

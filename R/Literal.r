@@ -4,35 +4,28 @@
 #' @exportClass Literal
 Literal <- R6::R6Class(
     classname = "Literal",
+    inherit = BoolAlgebra,
 
     ## Properties
     private = list(
-        .object = NULL
-
-
     ),
 
     ## Methods
     public = list(
         initialize = function(object) {
-            self$object <- object
+            private$.input <- list(object)
         },
         getObject = function() {
-            return(self$object)
+            return(self$input[[1]])
+        },
+        toOrAndList = function() {
+            return(list(list(self)))
         }
     ),
 
     ## Accessable properties. Active bindings look like fields, but each time they are accessed,
     ## they call a function. They are always publicly visible.
     active = list(
-        object = function(value) {
-            if (missing(value)) return(private$.object)
-            if (("Literal" %in% class(value)))
-                propError("object", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
-            private$.object <- value
-            return(self)
-        }
-
     )
 )
 

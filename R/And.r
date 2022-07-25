@@ -13,9 +13,9 @@ And <- R6::R6Class(
     ## Methods
     public = list(
         initialize = function(...) {
-            super()$initialize(...)
+            super$initialize(...)
         },
-        toOrList = function() { # returns a list of disjunctions
+        toOrAndList = function() { # returns a list of disjunctions
             return(list(self$input))
         }
 

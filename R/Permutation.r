@@ -4,7 +4,7 @@
 #' @exportClass Permutation
 Permutation <- R6::R6Class(
     classname = "Permutation",
-    ## inherit = Literal, # Every variable is a node
+    inherit = BoolAlgebra, # Every variable is a node
 
     ## Properties
     private = list(
@@ -15,6 +15,9 @@ Permutation <- R6::R6Class(
     public = list(
         initialize = function(...) {
             super$initialize(...)
+        },
+        toOrList = function() {
+            stop("TODO")
         }
     ),
 
