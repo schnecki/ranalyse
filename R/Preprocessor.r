@@ -83,14 +83,14 @@ Preprocessor <- R6::R6Class(
         inputValues = function(value) {
             if (missing(value)) return(private$.inputValues)
             if (!is.list(value)) value <- list(value)
-            if (!(base::is.list(value) && rhaskell::all(base::is.numeric, value)))
+            if (!(base::is.list(value) && (rhaskell::all(base::is.numeric, value) || rhaskell::all(is.date, value))))
                 propError("inputValues", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.inputValues <- value
             return(self)
         },
         outputValue = function(value) {
             if (missing(value)) return(private$.outputValue)
-            if (!(base::is.numeric(value)))
+            if (!(base::is.numeric(value) || is.date(value)))
                 propError("outputValue", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.outputValue <- value
             return(self)

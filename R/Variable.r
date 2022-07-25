@@ -31,7 +31,14 @@ Variable <- R6::R6Class(
             private$.vals <- value
             return(self)
         },
-        length = function() if (base::is.matrix(private$.vals)) dim(private$.vals)[[1]] else length(private$.vals),
+        ##' Number of values
+        length = function() return(self$columns * self$rows),
+        ##' Same as length
+        columns = function() if (base::is.matrix(private$.vals)) dim(private$.vals)[[2]] else 1,
+        ##' Same as length
+        rows = function() if (base::is.matrix(private$.vals)) dim(private$.vals)[[1]] else length(private$.vals),
+        ## Dimensions
+        dim = function() if (base::is.matrix(private$.vals)) dim(private$.vals) else c(length(private$.vals), 1),
         name = function(value) {
             if (missing(value)) return(private$.name)
             if (!(base::is.character(value)))

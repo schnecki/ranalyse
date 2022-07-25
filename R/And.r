@@ -16,7 +16,14 @@ And <- R6::R6Class(
             super$initialize(...)
         },
         toOrAndList = function() { # returns a list of disjunctions
-            return(list(self$input))
+            orAnds <- rhaskell::map(function(x) x$toOrAndList(), self$input)
+            if (length(orAnds) <= 0) return(list(list()))
+            if (length(orAnds) == 1) return(orAnds[[1]])
+            fun <- function(acc, ors) {
+                res <- rhaskell::concatMap(function(accAnds) rhaskell::map(function(ands) base::append(accAnds, ands), ors), acc)
+                return(res)
+            }
+            return(rhaskell::foldl(fun, rhaskell::head(orAnds), rhaskell::tail(orAnds)))
         }
 
     ),

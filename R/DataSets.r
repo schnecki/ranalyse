@@ -29,6 +29,40 @@ DataSets <- R6::R6Class(
                 warning("In DataSets$new(..) the xVar *names* are different. Using the first given xVar-name")
             self$xVar <- rhaskell::head(datasets)$xVar
         },
+        groupBy = function(columns, aggregates) {
+            if (is.null(columns)) stop("Expecting a list of columns to group on")
+            if (is.null(aggregates)) stop("Expecting a list of @GroupBy*@ aggregate functions")
+            if (!base::is.list(columns)) columns <- list(columns)
+            if (!base::is.list(aggregates)) aggregates <- list(aggregates)
+            for (ds in self$datasets) {
+                vars <- rhaskell::map(ds$getVariable, columns)
+                vals <- rhaskell::map(function(var) var$vals, vars)
+                keyVals <- rhaskell::map(unique, vals)
+                combs <- rhaskell::foldl(function(acc, x) expand.grid(acc, x), rhaskell::head(keyVals), rhaskell::tail(keyVals))
+                dict <- Dict::Dict$new(a = NULL)$clear()
+                rhaskell::mapM_(function(keyIdx) {
+                    keyVals <- combs[keyIdx, ]
+                    selector <- rhaskell::foldl(function(acc, x) acc & x, vals[[1]] == keyVals[[1]], rhaskell::zipWith(function(a, b) a == b, rhaskell::tail(vals), rhaskell::tail(keyVals)))
+                    dict[toString(keyVals)] <- selector
+                    ## idxs <- vals
+                    ## if (dict$has(key)) {
+                    ##     dict[key] <- rhaskell::cons(idx, dict$get(key))
+                    ## } else {
+                    ##     dict[key] <- base::list(idx)
+                    ## }
+                }, seq(1, dim(combs)[[1]]))
+                ## df <- ds$asDataFrame()
+
+                ##:ess-bp-start::conditional@:##
+browser(expr={TRUE})##:ess-bp-end:##
+
+                stop("Todo: process every element of logicals where at least one field is TRUE")
+                dict
+
+            }
+
+
+        },
         createCoreModelsFor = function(outcomes, fitters, formulas, adaptions, selection) {
             if (!base::is.list(outcomes)) outcomes <- list(outcomes)
             if (!base::is.list(fitters))  fitters  <- list(fitters)
@@ -36,14 +70,14 @@ DataSets <- R6::R6Class(
             coreModels <- CoreModelSelectors$new(paste0("Possible Core Models for DataSets of '", self$name, "'"), self)
 
             for (ds in self$datasets) {
-                df <- ds$asDataFrame() # create data frame
+                env <- ds$asEnvironment() # create environment
                 for (y in outcomes) {
                     selector <- CoreModelSelector$new(paste(ds$name, y), ds)
                     for (fitter in fitters) {
                         for (formula in formulas) {
-                            fitter$data <- df                    # set data frame
+                            fitter$data <- env                   # set data frame
                             fit <- fitter$fit(paste(y, formula)) # fit model
-                            selector$addPossibleCoreModel(fit)
+                            selector$addPossibleCoreModel(fit)   # save as possible model
                         }
                     }
                     if (!selector$hasAnyConvergedModel()){

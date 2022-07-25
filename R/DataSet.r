@@ -22,16 +22,27 @@ DataSet <- R6::R6Class(
             self$xVar <- xVar
             self$yVars <- Dict::Dict$new(a = NULL)$clear()
         },
+        ##' Convert to @data.frame@. Note that matrices will be converted into seperate columns. See also @asEnvironment@.
         asDataFrame = function() {
             yVals <- rhaskell::map(function(y) y$vals, self$yVars$values)
             df <- data.frame(rhaskell::cons(self$xVar$vals, yVals), row.names = 1)
-            names(df) <- unlist(self$yVars$keys)
+            mkName <- function(n, var) if (var$columns == 1) list(n) else rhaskell::map(function(nr) paste0(n, "_v", nr), seq(1, var$columns))
+            names(df) <- unlist(rhaskell::concat(rhaskell::zipWith(mkName, self$yVars$keys, self$yVars$values)))
             return(df)
+        },
+        ##' Convert to environment.
+        asEnvironment = function() {
+            e <- rlang::env()
+            e[[self$xVar$name]] <- self$xVar$vals
+            return(rhaskell::foldl(function(env, var) {
+                env[[var$name]] <- var$vals
+                return(env)
+            }, e, self$yVars$values))
         },
         addVariablesFromDataFrame = function(df, columns = names(df)) {
             if (!("data.frame" %in% class(df))) stop("Not a `data.frame` in DataSet$addFromDataFrame(..)")
             if (rhaskell::any(function(c) c %notElem% names(df), columns)) stop("Not all column names are part of the data frame that you want to add to the `DataSet`!")
-            rhaskell::map(function(c) self$addVariableFromData(c, df[[c]]), columns)
+            rhaskell::mapM_(function(c) self$addVariableFromData(c, df[[c]]), columns)
             return(self)
         },
         addVariableFromData = function(name, data, varDesc = NULL) {
@@ -39,8 +50,8 @@ DataSet <- R6::R6Class(
             return(self)
         },
         addVariable = function(var) {
-            if (self$xVar$length != var$length)
-                stop(paste0("Number of values from domain (x-axis) and variable to be added to the `DataSet` do not coincide: ", self$xVar$length, " != ", var$length, ". Variable: ", var$name))
+            if (self$xVar$rows != var$rows)
+                stop(paste0("Number of values from domain (x-axis) and variable to be added to the `DataSet` do not coincide: ", self$xVar$rows, " != ", var$length, ". Variable: ", var$name))
             if (self$yVars$has(var$name)) stop(paste0("Variable with name '", var$name, "' already exists in DataSet."))
             self$yVars[var$name] <- var
             return(self)
@@ -107,8 +118,13 @@ DataSet <- R6::R6Class(
             private$.yVars <- value
             return(self)
         },
+        ##' Number of variables.
         length = function() private$.yVars$length,
+        ##' Rows of each variable
+        rows = function() self$xVar$rows,
+        ##' All variables names, i.e. x and y variable Names.
         variableNames = function() return(base::append(list(self$xVar$name), self$variableNamesY)),
+        ##' Y variables names (without x-variable).
         variableNamesY = function() return(as.list(self$yVars$keys))
     )
 

@@ -50,7 +50,7 @@ DataSource <- R6::R6Class(
                 return(list(Variable$fromData(n, self$columns$get(n), self$variableDesc$get(n))))
             }, self$columns$keys)
             if (rhaskell::null(vars)) stop("No variables selected in parameter function `filterVarsFun` that are also defined in `variableDesc`")
-            lengths <- rhaskell::map(function(x) x$length, vars)
+            lengths <- rhaskell::map(function(x) x$rows, vars)
             len <- min(unlist(lengths))
             dataCutTxt <- ""
             if (!rhaskell::all(function(l) l == len, lengths)) {

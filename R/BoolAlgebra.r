@@ -29,14 +29,6 @@ BoolAlgebra <- R6::R6Class(
             if (missing(value)) return(private$.input)
             private$.input <- value
             return(self)
-        },
-        orList = function(value) {
-            if (missing(value)) return(private$.orList)
-            if (!(base::is.list(value) && rhaskell::all(function(x) "Literal" %in% class(x), value)))
-                propError("input", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
-            private$.input <- value
-            return(self)
         }
-
     )
 )
