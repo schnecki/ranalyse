@@ -1,4 +1,4 @@
-#' Permutation interface.
+#' Permutation interface. The order of the values does not matter in this implementation!
 #'
 #' @export Permutation
 #' @exportClass Permutation
@@ -8,7 +8,12 @@ Permutation <- R6::R6Class(
 
     ## Properties
     private = list(
-        .inputs = NULL
+        .inputs = NULL,
+        .chooseNr = function(nr) {
+            if (nr <= 0) return(list())
+            startIdxs <- seq(from = 1, to = length(self$input) - nr + 1)
+            return(rhaskell::map(function(start) self$input[start:(start + nr - 1)], startIdxs))
+        }
     ),
 
     ## Methods
@@ -16,8 +21,9 @@ Permutation <- R6::R6Class(
         initialize = function(...) {
             super$initialize(...)
         },
-        toOrList = function() {
-            stop("TODO")
+        toOrAndList = function() {
+            orAnds <- rhaskell::map(function(nr) private$.chooseNr(nr), rhaskell::reverse(seq(1, length(self$input))))
+            return(rhaskell::concat(orAnds))
         }
     ),
 
