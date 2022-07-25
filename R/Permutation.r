@@ -8,17 +8,13 @@ Permutation <- R6::R6Class(
 
     ## Properties
     private = list(
-        .options = NULL
+        .inputs = NULL
     ),
 
     ## Methods
     public = list(
         initialize = function(...) {
-            args <- list(...)
-            inputs <- rhaskell::map(Literal$mkLiteral, args)
-            ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
-            if (length(args) < 1) stop("Permutation$new(..) expects at least one input argument!")
+            super$initialize(...)
         }
     ),
 

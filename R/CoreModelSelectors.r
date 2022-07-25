@@ -40,7 +40,7 @@ CoreModelSelectors <- R6::R6Class(
                 self$coreModelSelectors[dsHash] <- inner
             }
             self$addChild(sel)
-        },
+        }
 
     ),
 

@@ -7,8 +7,7 @@ BoolAlgebra <- R6::R6Class(
 
     ## Properties
     private = list(
-        .input = NULL, # list<Literal>
-        .orList = NULL
+        .input = NULL # list<Literal>
     ),
 
     ## Methods
@@ -26,11 +25,11 @@ BoolAlgebra <- R6::R6Class(
     ## Accessable properties. Active bindings look like fields, but each time they are accessed,
     ## they call a function. They are always publicly visible.
     active = list(
-        orList = function(value) {
-            if (missing(value)) return(private$.orList)
+        input = function(value) {
+            if (missing(value)) return(private$.input)
             if (!(base::is.list(value) && rhaskell::all(function(x) "Literal" %in% class(x), value)))
-                propError("orList", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
-            private$.orList <- value
+                propError("input", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+            private$.input <- value
             return(self)
         }
 
