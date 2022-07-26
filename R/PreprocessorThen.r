@@ -26,14 +26,14 @@ PreprocessorThen <- R6::R6Class(
             inputValuesSecond <- list()
             idx <- 1
             for (n in self$prepSecond$inputNames) {
-                if (n == self$prepFirst$outputName) inputValuesSecond <- base::append(inputValuesSecond, list(output1$vals))
+                if (n == self$prepFirst$outputName) inputValuesSecond <- base::append(inputValuesSecond, list(output1$asMatrix()))
                 else {
                     inputValuesSecond <- base::append(inputValuesSecond, list(basicInputValuesSecond[[idx]]))
                     idx <- idx + 1
                 }
             }
             output2 <- self$prepSecond$preprocess(inputValuesSecond)
-            return(output2$vals)
+            return(output2$asMatrix())
         },
         .getDefaultDesc = function() {
             return(paste0(getR6ClassName(self$prepFirst), "(", paste(self$prepFirst$inputNames, collapse = ", "), ")",

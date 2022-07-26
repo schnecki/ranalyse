@@ -17,8 +17,31 @@ Variable <- R6::R6Class(
         initialize = function(name, vals, desc = NULL) {
             super$initialize(desc)
             self$name <- name
-            self$vals <- vals
-        }
+            if (tibble::is_tibble(vals)) {
+                self$vals <- vals
+            } else {
+                vals <- tibble::tibble(vals)
+                names(vals) <- self$name
+                self$vals <- vals
+            }
+
+        },
+        #' Crop rows to selector vector
+        #'
+        #' @param selector: vector of logicals with length as there are number of rows in data
+        #' @return a new variable of same tibble but only selected rows
+        cropRows = function(selector) {
+            if (!is.logical(selector) || !self$rows == length(selector))
+                stop("cropRows exects a vector of logicals with the number of rows as in the variable")
+            if (tibble::is_tibble(self$vals)) {
+                valsNew <- self$vals[selector, ]
+                return(Variable$fromData(self$name, valsNew, desc = paste0("crop(", self$name, ") w/ ", dim(valsNew)[[1]], "/", self$rows, " rows")))
+            } else {
+                valsNew <- self$vals[selector]
+                return(Variable$fromData(self$name, valsNew, desc = paste0("crop(", self$name, ") w/ ", length(valsNew), "/", self$rows, " rows")))
+            }
+        },
+        asMatrix = function() as.matrix(private$.vals)
     ),
 
     ## Accessable properties. Active bindings look like fields, but each time they are accessed,
@@ -26,19 +49,23 @@ Variable <- R6::R6Class(
     active = list(
         vals = function(value) {
             if (missing(value)) return(private$.vals)
-            if (!((base::is.vector(value) || base::is.matrix(value)) && rhaskell::all(base::is.numeric, value)))
+            if (!((tibble::is_tibble(value)) && rhaskell::all(base::is.numeric, value))) {
+                ##:ess-bp-start::conditional@:##
+browser(expr={TRUE})##:ess-bp-end:##
+
                 propError("vals", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+            }
             private$.vals <- value
             return(self)
         },
-        ##' Number of values
+        #' Number of values
         length = function() return(self$columns * self$rows),
-        ##' Same as length
-        columns = function() if (base::is.matrix(private$.vals)) dim(private$.vals)[[2]] else 1,
-        ##' Same as length
-        rows = function() if (base::is.matrix(private$.vals)) dim(private$.vals)[[1]] else length(private$.vals),
-        ## Dimensions
-        dim = function() if (base::is.matrix(private$.vals)) dim(private$.vals) else c(length(private$.vals), 1),
+        #' Same as length
+        columns = function() if (tibble::is_tibble(private$.vals)) dim(private$.vals)[[2]] else 1,
+        #' Same as length
+        rows = function() if (tibble::is_tibble(private$.vals)) dim(private$.vals)[[1]] else length(private$.vals),
+        #' Dimensions
+        dim = function() if (tibble::is_tibble(private$.vals)) dim(private$.vals) else c(length(private$.vals), 1),
         name = function(value) {
             if (missing(value)) return(private$.name)
             if (!(base::is.character(value)))
@@ -67,7 +94,8 @@ Variable$fromData <- function(name, data, desc = NULL) {
     else if (base::is.factor(data)) return(VariableFactor$new(name, data, desc))
     else if (base::is.logical(data)) return(VariableBoolean$new(name, data, desc))
     else if (base::is.character(data) && is.na(as.numeric(data[[1]]))) return(VariableString$new(name, data, desc))
-    else if (base::is.matrix(data)) return(Variable$new(name, data, desc))
+    else if (base::is.matrix(data) && dim(data)[[2]] > 1) return(Variable$new(name, data, desc))
+    else if (base::is.data.frame(data)) return(Variable$new(name, data, desc))
     else if (base::is.character(data)) { # is numeric value in character string. convert.
         warning(paste0("Found numeric values as string in variable ", name, ". Converting to numeric values!"))
         return(Variable$new(name, as.numeric(data), desc))

@@ -29,7 +29,8 @@ Imports:
   tsModel,
   ggplot2,
   dlnm,
-  digest
+  digest,
+  tibble
 Depends: R (>= 3.2)
 License: file LICENSE
 Encoding: UTF-8

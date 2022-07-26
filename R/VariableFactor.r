@@ -24,7 +24,7 @@ VariableFactor <- R6::R6Class(
     active = list(
         vals = function(value) {
             if (missing(value)) return(private$.vals)
-            if (!(length(value) > 1 && rhaskell::all(base::is.factor, value)))
+            if (!(tibble::is_tibble(value) && rhaskell::all(base::is.factor, value)))
                 propError("vals", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.vals <- value
             return(self)

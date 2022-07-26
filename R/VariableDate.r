@@ -16,6 +16,13 @@ VariableDate <- R6::R6Class(
     public = list(
         initialize = function(name, vals, desc = NULL) {
             super$initialize(name, vals, desc)
+        },
+        asMatrix = function() {
+            x <- as.matrix(private$.vals)
+            ## dim(x) <- c(self$rows, self$columns)
+            ## dimnames(x) <- list(NULL, base::unlist(rhaskell::replicate(self$columns, self$name)))
+            class(x) <- base::append(class(x), list("Date"))
+            return(x)
         }
     ),
 
@@ -24,7 +31,7 @@ VariableDate <- R6::R6Class(
     active = list(
         vals = function(value) {
             if (missing(value)) return(private$.vals)
-            if (!(length(value) > 1 && rhaskell::all(is.date, value)))
+            if (!(tibble::is_tibble(value) && rhaskell::all(ranalyse::is.date, value)))
                 propError("vals", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.vals <- value
             return(self)

@@ -19,6 +19,7 @@ NodeProcessor <- R6::R6Class(
         },
         addProcessor = function(proc) {
             self$processors <- base::append(self$processors, list(proc))
+            return(self)
         }
     ),
 

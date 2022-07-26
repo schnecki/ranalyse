@@ -24,7 +24,7 @@ VariableString <- R6::R6Class(
     active = list(
         vals = function(value) {
             if (missing(value)) return(private$.vals)
-            if (!(is.vector(value) && rhaskell::all(base::is.character, value)))
+            if (!(tibble::is_tibble(value) && rhaskell::all(base::is.character, value)))
                 propError("vals", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.vals <- value
             return(self)

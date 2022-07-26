@@ -24,6 +24,7 @@ Node <- R6::R6Class(
             if (!base::identical(child$parent, self)) child$parent <- self
             if (!rhaskell::any(function(c) base::identical(child, c), self$childs))
                 self$childs <- append(self$childs, list(child))
+            return(self)
         }
     ),
 

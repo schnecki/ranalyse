@@ -8,6 +8,9 @@ is.date <- function(x) {
   return(inherits(x, c("Date", "POSIXt")))
 }
 
+#' If-then-else
+ite <- function(bool, then, elsePart) { if (bool) then else elsePart }
+
 propError <- function(name, value, srcFile, srcLoc) {
     val <- toString(value)
     if (nchar(val) > 40) val <- str_trunc(val, 40)
