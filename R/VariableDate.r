@@ -31,8 +31,11 @@ VariableDate <- R6::R6Class(
     active = list(
         vals = function(value) {
             if (missing(value)) return(private$.vals)
-            if (!(tibble::is_tibble(value) && rhaskell::all(ranalyse::is.date, value)))
+            if (!(tibble::is_tibble(value) && rhaskell::all(ranalyse::is.date, value))) {
+                ##:ess-bp-start::conditional@:##
+browser(expr={TRUE})##:ess-bp-end:##
                 propError("vals", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+            }
             private$.vals <- value
             return(self)
         }

@@ -21,7 +21,6 @@ PreprocessorCrossbasis <- R6::R6Class(
             argvar <- self$argvarFun(vals)
             if (base::is.null(self$groupingFun)) grouping <- NULL
             else grouping <- self$groupingFun(self$dataset)
-            cb <- dlnm::crossbasis(vals, lag = self$lag, argvar = argvar, arglag = self$arglag, group = grouping)
             return(dlnm::crossbasis(vals, lag = self$lag, argvar = argvar, arglag = self$arglag, group = grouping))
         },
         .getDefaultDesc = function() {

@@ -10,7 +10,7 @@ AggregateBy <- R6::R6Class(
     private = list(
         .inputName = NULL,  # character
         .outputName = NULL, # character
-        .rm.na = TRUE,      # logical
+        .na.rm = TRUE,      # logical
         .columnWise = TRUE, # logical
 
         #' Aggreate process function. Value that will be in the data set after processing input.
@@ -34,24 +34,36 @@ AggregateBy <- R6::R6Class(
 
     ## Methods
     public = list(
-        initialize = function(inputName, as = NULL, columnWise = TRUE, rm.na = TRUE, desc = NULL) {
+        initialize = function(inputName, as = NULL, columnWise = TRUE, na.rm = TRUE, desc = NULL) {
             super$initialize(desc)
             self$inputName <- inputName
-            self$outputName <- ite(is.null(as), inputName, as)
+            self$outputName <- ite(base::is.null(as), inputName, as)
             self$columnWise <- columnWise
-            self$rm.na <- rm.na
-
-
+            self$na.rm <- na.rm
         },
         process = function(xs) {
-            res <- rhaskell::map(function(idx) {
-                data <- ite(is.matrix(xs), xs[, idx], xs[idx])
-                if (self$rm.na) data <- data[!is.na(data)]
-                return(private$.process(unlist(data)))
-            }, seq(1, ite(base::is.matrix(xs), dim(xs)[[2]], 1)))
-            if (base::is.matrix(xs)) return(matrix(res, ncol = ncol(xs)))
-            else return(res)
-        }
+            if (base::is.matrix(xs)) xs <- tibble::as_tibble(xs)
+            if (self$columnWise) {
+                res <- rhaskell::map(function(idx) {
+                    data <- xs[[idx]]
+                    if (base::is.list(data)) {
+                        warning("Data should not be stored in a list! Converting with `unlist` which is problematic for `Date` types")
+                        data <- unlist(data)
+                    }
+                    if (self$na.rm) data <- data[!is.na(data)]
+                    return(private$.process(data))
+                }, seq(1, ite(base::is.data.frame(xs), dim(xs)[[2]], 1)))
+                names(res) <- names(xs)
+                return(tibble::as.tibble(res, nrow = 1, ncol = length(res)))
+            } else {
+                if (self$na.rm) data <- tidyr::drop_na(xs)
+                res <- private$.process(data)
+                if (tibble::is_tibble(res)) return(res)
+                if (rhaskell::null(names(res))) names(res) <- names(xs) # suppose same names
+                return(tibble::as.tibble(res, nrow = 1, .name_repair = "unique"))
+
+            }
+    }
     ),
 
     ## Accessable properties. Active bindings look like fields, but each time they are accessed,
@@ -78,11 +90,11 @@ AggregateBy <- R6::R6Class(
             private$.columnWise <- value
             return(self)
         },
-        rm.na = function(value) {
-            if (missing(value)) return(private$.rm.na)
+        na.rm = function(value) {
+            if (missing(value)) return(private$.na.rm)
             if (!(base::is.logical(value)))
-                propError("rm.na", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
-            private$.rm.na <- value
+                propError("na.rm", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+            private$.na.rm <- value
             return(self)
         }
     )

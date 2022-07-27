@@ -1,18 +1,18 @@
-#' AggregateByMin. Grouping by minimum.
+#' AggregateBySum. Grouping by minimum.
 #'
-#' @export AggregateByMin
-#' @exportClass AggregateByMin
-AggregateByMin <- R6::R6Class(
-    classname = "AggregateByMin",
+#' @export AggregateBySum
+#' @exportClass AggregateBySum
+AggregateBySum <- R6::R6Class(
+    classname = "AggregateBySum",
     inherit = AggregateBy,
 
     ## Properties
     private = list(
         .inputName = NULL,  # character
         .outputName = NULL, # character
-        .process = base::min,
+        .process = base::sum,
         .getDefaultFunName = function() {
-            return("min")
+            return("sum")
         }
     ),
 

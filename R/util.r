@@ -66,3 +66,5 @@ getR6Class <- function(x, n.parent = 0) {
 is.integer <- function(x) {
     return(base::is.numeric(x) && round(x) == x)
 }
+
+`%comp%` <- function(f, g) rhaskell::comp(f, g)

@@ -30,7 +30,9 @@ Imports:
   ggplot2,
   dlnm,
   digest,
-  tibble
+  tibble,
+  tidyr
+
 Depends: R (>= 3.2)
 License: file LICENSE
 Encoding: UTF-8

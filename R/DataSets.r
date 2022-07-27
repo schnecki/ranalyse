@@ -23,14 +23,14 @@ DataSets <- R6::R6Class(
             self$datasets <- datasets
             ## if (rhaskell::any(rhaskell::pNIdentical(rhaskell::head(datasets)$xVar$vals), rhaskell::map(function(x) x$xVar$vals, rhaskell::tail(datasets))))
             ##     stop("In DataSets$new(..) the xVar values have to be equal for all datasets: ", paste0(rhaskell::map(function(x) x$xVar, datasets)))
-            if (rhaskell::any(rhaskell::comp(rhaskell::pNIdentical(rhaskell::head(datasets)$xVar$vals), function(x) x$xVar$vals), rhaskell::tail(datasets)))
+            if (rhaskell::any(rhaskell::pNIdentical(rhaskell::head(datasets)$xVar$vals) %comp% (function(x) x$xVar$vals), rhaskell::tail(datasets)))
                 stop("In DataSets$new(..) the xVar *values* have to be equal for all datasets")
-            if (rhaskell::any(rhaskell::comp(rhaskell::pNeq(rhaskell::head(datasets)$xVar$name), function(x) x$xVar$name), rhaskell::tail(datasets)))
+            if (rhaskell::any(rhaskell::pNeq(rhaskell::head(datasets)$xVar$name) %comp% (function(x) x$xVar$name), rhaskell::tail(datasets)))
                 warning("In DataSets$new(..) the xVar *names* are different. Using the first given xVar-name")
             self$xVar <- rhaskell::head(datasets)$xVar
         },
-        groupBy = function(columns, aggregates, xVarName = "t", rm.na = TRUE) {
-            dss <- rhaskell::map(function(ds) ds$groupBy(columns, aggregates, xVarName, rm.na), self$datasets)
+        groupBy = function(columns, aggregates, xVarName = "t", na.rm = TRUE) {
+            dss <- rhaskell::map(function(ds) ds$groupBy(columns, aggregates, xVarName, na.rm), self$datasets)
             dsNew <- DataSets$new(paste0(self$name, " grouped"), dss, desc = paste0("grouped by ", rhaskell::unlines(rhaskell::intersperse(", ", columns))))
             self$addChild(dsNew)
             return(dsNew)

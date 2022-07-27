@@ -37,6 +37,7 @@ Variable <- R6::R6Class(
                 valsNew <- self$vals[selector, ]
                 return(Variable$fromData(self$name, valsNew, desc = paste0("crop(", self$name, ") w/ ", dim(valsNew)[[1]], "/", self$rows, " rows")))
             } else {
+                stop("EXPECTING TIBBLE!")
                 valsNew <- self$vals[selector]
                 return(Variable$fromData(self$name, valsNew, desc = paste0("crop(", self$name, ") w/ ", length(valsNew), "/", self$rows, " rows")))
             }
@@ -50,8 +51,6 @@ Variable <- R6::R6Class(
         vals = function(value) {
             if (missing(value)) return(private$.vals)
             if (!((tibble::is_tibble(value)) && rhaskell::all(base::is.numeric, value))) {
-                ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
 
                 propError("vals", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             }
@@ -90,15 +89,21 @@ Variable$set("public", "clone", function(deep = TRUE) {
 #' @param data vector variable data
 #' @param desc string Description of variable
 Variable$fromData <- function(name, data, desc = NULL) {
-    if (ranalyse::is.date(data)) return(VariableDate$new(name, data, desc))
-    else if (base::is.factor(data)) return(VariableFactor$new(name, data, desc))
-    else if (base::is.logical(data)) return(VariableBoolean$new(name, data, desc))
-    else if (base::is.character(data) && is.na(as.numeric(data[[1]]))) return(VariableString$new(name, data, desc))
-    else if (base::is.matrix(data) && dim(data)[[2]] > 1) return(Variable$new(name, data, desc))
-    else if (base::is.data.frame(data)) return(Variable$new(name, data, desc))
+    if (!rhaskell::all(rhaskell::and %comp% rhaskell::pEq(base::class(data[[1]])) %comp% base::class, data))
+        stop("Not all data types of vector/matrix/tibble are different when creating a new Variable. The must be the same!")
+
+    ## Convert matrices to tibbles (= data.frames)
+    if (base::is.matrix(data)) data <- tibble::as_tibble(data)
+
+    if      (ranalyse::is.date(data[[1]]))                                             return(VariableDate$new(name, data, desc))
+    else if (base::is.factor(data[[1]]))                                               return(VariableFactor$new(name, data, desc))
+    else if (base::is.logical(data[[1]]))                                              return(VariableBoolean$new(name, data, desc))
+    else if (base::is.character(data[[1]]) && !base::is.numeric(as.matrix(data)[[1]])) return(VariableString$new(name, data, desc))
     else if (base::is.character(data)) { # is numeric value in character string. convert.
         warning(paste0("Found numeric values as string in variable ", name, ". Converting to numeric values!"))
         return(Variable$new(name, as.numeric(data), desc))
+    } else if (base::is.data.frame(data)) { # already a data frame (=matrix/tibble), hence do not convert to vector
+        return(Variable$new(name, data, desc))
     } else {
         return(Variable$new(name, as.vector(data), desc))
     }
