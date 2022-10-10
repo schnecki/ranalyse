@@ -34,7 +34,7 @@ Fitter <- R6::R6Class(
             self$akaikeFun <- akaikeFun
 
         },
-        fit = function(formula, failOneError = TRUE) {
+        fit = function(formula, failOnError = TRUE) {
             ## Do NOT OVERRIDE this method implementing the interface!
             ## fit a model using private `.fit` method.
 
@@ -48,8 +48,8 @@ Fitter <- R6::R6Class(
                 res
             }, error = function(cond) {
                 self$converged <- FALSE
-                warning(cond)
-                if (failOneError) stop(cond)
+                warning("Cannot fit model: ", cond)
+                if (failOnError) stop(cond)
                 return(NULL)
             })
 

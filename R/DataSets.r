@@ -29,9 +29,52 @@ DataSets <- R6::R6Class(
                 warning("In DataSets$new(..) the xVar *names* are different. Using the first given xVar-name")
             self$xVar <- rhaskell::head(datasets)$xVar
         },
+        #' Apply a function `f :: a -> b` to each element of  one specific column and for all DataSets.
+        #'
+        #' @param fun: function to apply of type `a -> b`.
+        #' @param column: column name to apply function to.
+        #' @param funDesc: Textual description of function.
+        #' @return a new DataSets object.
+        fmap = function(fun, column, funDesc = deparse1(fun)) {
+            if (base::is.list(column)) stop("Cannot use multiple columns in function `fmap`")
+            dss <- rhaskell::map(function(ds) ds$fmap(fun, column, funDesc), self$datasets)
+            dsNew <- DataSets$new(paste0(self$name, " fmapped"), dss, desc = paste0("fmapped ", funDesc, " over ", column))
+            self$addChild(dsNew)
+            return(dsNew)
+        },
+        #' Accumulate one or more variable values to a new variable using a function `f :: [Vector a] -> b`. Adds the new variable to the DataSet.
+        #'
+        #' @param newVarName: Name of new variable
+        #' @param fun: function to apply of type `[Vector a] -> b`. Each element is a scalar or vector (in case of matrix variables) of inputs from the specified columns.
+        #' @param columns: columns used as input to the function.
+        #' @param funDesc: Textual description of function.
+        #' @return a new DataSet object.
+        accumTo = function(newVarName, fun, columns, funDesc = deparse1(fun)) {
+            dss <- rhaskell::map(function(ds) ds$accumTo(newVarName, fun, columns, funDesc), self$datasets)
+            dsNew <- DataSets$new(paste0(self$name, ", accumed"), dss, desc = paste0("accumulated by ", funDesc, " over ", paste0(columns, collapse = ",")))
+            self$addChild(dsNew)
+            return(dsNew)
+        },
+        #' Group all datasets by the specified columns and aggregate using the Aggregate function objects.
+        #'
+        #' @param columns: Columns to group on. Every tuple of values from these columns will only occur once after grouping.
+        #' @param aggregates: Functions to apply on the data that will be aggregated, i.e. if and how other columns that will appear be kept.
+        #' @param xVarName: Name of new variable.
+        #' @return a new DataSet object.
         groupBy = function(columns, aggregates, xVarName = "t", na.rm = TRUE) {
             dss <- rhaskell::map(function(ds) ds$groupBy(columns, aggregates, xVarName, na.rm), self$datasets)
             dsNew <- DataSets$new(paste0(self$name, " grouped"), dss, desc = paste0("grouped by ", rhaskell::unlines(rhaskell::intersperse(", ", columns))))
+            self$addChild(dsNew)
+            return(dsNew)
+        },
+        #' Remove a variable from all datasets.
+        #'
+        #' @param column: Column/Variable name to remove.
+        #' @param stopIfNotExists call `stop` if variable does not eixt
+        #' @return a new DataSet object.
+        removeVariable = function(column, stopIfNotExists = TRUE) {
+            dss <- rhaskell::map(function(ds) ds$removeVariable(column, stopIfNotExists), self$datasets)
+            dsNew <- DataSets$new(paste0(self$name, " ,removed var"), dss, desc = paste0("removed ", column))
             self$addChild(dsNew)
             return(dsNew)
         },
@@ -60,6 +103,7 @@ DataSets <- R6::R6Class(
             }
             return(coreModels)
         }
+
     ),
 
     ## Accessable properties. Active bindings look like fields, but each time they are accessed,

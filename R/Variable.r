@@ -35,14 +35,26 @@ Variable <- R6::R6Class(
                 stop("cropRows exects a vector of logicals with the number of rows as in the variable")
             if (tibble::is_tibble(self$vals)) {
                 valsNew <- self$vals[selector, ]
-                return(Variable$fromData(self$name, valsNew, desc = paste0("crop(", self$name, ") w/ ", dim(valsNew)[[1]], "/", self$rows, " rows")))
+                varNew <- Variable$fromData(self$name, valsNew, desc = paste0("crop(", self$name, ") w/ ", dim(valsNew)[[1]], "/", self$rows, " rows"))
+                self$addChild(varNew)
+                return(varNew)
             } else {
                 stop("EXPECTING TIBBLE!")
                 valsNew <- self$vals[selector]
                 return(Variable$fromData(self$name, valsNew, desc = paste0("crop(", self$name, ") w/ ", length(valsNew), "/", self$rows, " rows")))
             }
         },
-        asMatrix = function() as.matrix(private$.vals)
+        asMatrix = function() as.matrix(private$.vals),
+        #' Apply a function `f :: a -> b` to each element and returns a new variable object with the modified data.
+        #'
+        #' @param fun: function to apply of type `a -> b`.
+        #' @param funDesc: Textual description of function.
+        #' @return a new Variable object
+        fmap = function(fun, funDesc = deparse1(fun)) {
+            varNew <- Variable$fromData(self$name, base::unlist(rhaskell::map(fun, self$vals)), paste0("fmap(", funDesc, ",", self$desc, ")"))
+            self$addChild(varNew)
+            return(varNew)
+        }
     ),
 
     ## Accessable properties. Active bindings look like fields, but each time they are accessed,
@@ -51,7 +63,6 @@ Variable <- R6::R6Class(
         vals = function(value) {
             if (missing(value)) return(private$.vals)
             if (!((tibble::is_tibble(value)) && rhaskell::all(base::is.numeric, value))) {
-
                 propError("vals", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             }
             private$.vals <- value

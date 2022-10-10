@@ -1,18 +1,18 @@
-#' AggregateBySum. Aggregate by summing.
+#' AggregateByMean. Aggregation by mean.
 #'
-#' @export AggregateBySum
-#' @exportClass AggregateBySum
-AggregateBySum <- R6::R6Class(
-    classname = "AggregateBySum",
+#' @export AggregateByMean
+#' @exportClass AggregateByMean
+AggregateByMean <- R6::R6Class(
+    classname = "AggregateByMean",
     inherit = AggregateBy,
 
     ## Properties
     private = list(
         .inputName = NULL,  # character
         .outputName = NULL, # character
-        .process = base::sum,
+        .process = base::mean,
         .getDefaultFunName = function() {
-            return("sum")
+            return("min")
         }
     ),
 

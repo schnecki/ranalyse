@@ -30,6 +30,12 @@ DataSet <- R6::R6Class(
             names(df) <- unlist(rhaskell::concat(rhaskell::zipWith(mkName, self$yVars$keys, self$yVars$values)))
             return(df)
         },
+        ##' Convert to @tibble@.
+        asTibble = function() {
+            yVals <- rhaskell::map(function(y) y$vals, self$yVars$values)
+            tbbl <- tibble::tibble(self$xVar$vals)
+            return(rhaskell::foldl(function(acc, col) tibble::add_column(acc, col), tbbl, yVals))
+        },
         #' Convert to @matrix@. Note that matrices can only have one primitive types. If you have a column of type @Date@ this will convert all columns to strings.
         asMatrix = function() {
             yVals <- rhaskell::map(function(y) y$vals, self$yVars$values)
@@ -45,6 +51,61 @@ DataSet <- R6::R6Class(
                 return(env)
             }, e, self$yVars$values))
         },
+        #' Apply a function `f :: a -> b` to each element of one specific column and replace variable. Returns new DataSet.
+        #'
+        #' @param fun: function to apply of type `a -> b`.
+        #' @param column: column name to apply function to.
+        #' @param funDesc: Textual description of function.
+        #' @return a new DataSet object.
+        fmap = function(fun, column, funDesc = deparse1(fun)) {
+            if (base::is.list(column)) stop("Cannot use multiple columns in function `fmap`")
+            var <- self$getVariable(column)
+            varNew <- var$fmap(fun, funDesc)
+            dsNew <- self$clone(deep = TRUE)
+            dsNew$replaceVariable(varNew)
+            np <- NodeProcessor$new("fmap")
+            procNode <- NodeProcessor$new(paste0("fmap(", funDesc, ",", column, ")"))
+            self$addChild(procNode)
+            procNode$addChild(dsNew)
+            return(dsNew)
+        },
+        #' Accumulate one or more variable values to a new variable using a function `f :: [Vector a] -> b`. Adds the new variable to the DataSet.
+        #'
+        #' @param newVarName: Name of new variable
+        #' @param fun: function to apply of type `[Vector a] -> b`. Each element is a scalar or vector (in case of matrix variables) of inputs from the specified columns.
+        #' @param columns: columns used as input to the function.
+        #' @param funDesc: Textual description of function.
+        #' @return a new DataSet object.
+        accumTo = function(newVarName, fun, columns, funDesc = deparse1(fun)) {
+            if (!base::is.list(columns)) columns <- list(columns)
+            vars <- rhaskell::map(self$getVariable, columns)
+            varsVals <- rhaskell::map(function(x) x$vals, vars)
+            unpackIfOnlyScalars <- function(xs) {
+                if (length(xs) == length(rhaskell::concat(xs))) return(unlist(xs))
+                else return(xs)
+            }
+            vals <- unlist(
+                rhaskell::map(function(row)
+                    fun(unpackIfOnlyScalars(rhaskell::map(function(tibble)
+                        unlist(rhaskell::map(function(col) col[[row]], as.list(tibble)))
+                      , varsVals)))
+                  , seq_len(nrow(varsVals[[1]]))))
+            varNew <- Variable$fromData(newVarName, vals, paste(funDesc, "of columns", paste(columns, collapse = ",")))
+            rhaskell::mapM_(function(x) x$addChild(varNew), vars)
+            dsNew <- self$clone(deep = TRUE)
+            dsNew$addVariable(varNew)
+            np <- NodeProcessor$new("accumTo")
+            procNode <- NodeProcessor$new(paste("accumTo", newVarName, "with", funDesc, "of columns", paste(columns, collapse = ",")))
+            self$addChild(procNode)
+            procNode$addChild(dsNew)
+            return(dsNew)
+        },
+        #' Group by the specified columns and aggregate using the Aggregate function objects.
+        #'
+        #' @param columns: Columns to group on. Every tuple of values from these columns will only occur once after grouping.
+        #' @param aggregates: Functions to apply on the data that will be aggregated, i.e. if and how other columns that will appear be kept.
+        #' @param xVarName: Name of new variable.
+        #' @return a new DataSet object.
         groupBy = function(columns, aggregates, xVarName = "t", na.rm = TRUE) {
             if (!base::is.list(columns)) columns <- list(columns)
             if (!base::is.list(aggregates)) aggregates <- list(aggregates)
@@ -81,7 +142,8 @@ DataSet <- R6::R6Class(
                 }
                 newKeyVars <- rhaskell::zipWith(function(var, kVal) { # Create key variables
                     kVar <- var$clone()
-                    kVar$vals <- tibble::as.tibble(kVal, ncol = base::ncol(var$vals))
+                    kVar$vals <- tibble::as_tibble(kVal, ncol = base::ncol(var$vals))
+                    names(kVar$vals) <- var$name
                     return(kVar)
                 }, vars, keyVal)
                 newVars <- rhaskell::map(mkAggregate, aggregates) # Create aggreate variables
@@ -118,7 +180,14 @@ DataSet <- R6::R6Class(
         addVariable = function(var) {
             if (self$xVar$rows != var$rows)
                 stop(paste0("Number of values from domain (x-axis) and variable to be added to the `DataSet` do not coincide: ", self$xVar$rows, " != ", var$length, ". Variable: ", var$name))
-            if (self$yVars$has(var$name)) stop(paste0("Variable with name '", var$name, "' already exists in DataSet."))
+            if (self$yVars$has(var$name)) stop(paste0("Variable with name '", var$name, "' already exists in DataSet. Maybe you want to use `replaceVariable` instead of `addVariable`!"))
+            self$yVars[var$name] <- var
+            return(self)
+        },
+        replaceVariable = function(var) {
+            if (self$xVar$rows != var$rows)
+                stop(paste0("Number of values from domain (x-axis) and variable to be replaced to the `DataSet` do not coincide: ", self$xVar$rows, " != ", var$length, ". Variable: ", var$name))
+            if (!self$yVars$has(var$name)) stop(paste0("Variable with name '", var$name, "' does NOT exists in DataSet. Maybe you want to use `addVariable` instead of `replaceVariable`!"))
             self$yVars[var$name] <- var
             return(self)
         },
@@ -127,13 +196,23 @@ DataSet <- R6::R6Class(
             else if (!self$yVars$has(varName)) stop(paste0("Variable with name '", varName, "' does not exit in DataSet (anymore)."))
             else return(self$yVars$get(varName))
         },
-        removeVariable = function(varName, stopIfExists = TRUE) {
+        removeVariable = function(varName, stopIfNotExists = TRUE) {
             if (varName == self$xVar$name) stop("Cannot remove x-Variable '", varName, "' from DataSet")
-            else if (stopIfExists && !self$yVars$has(varName)) stop(paste0("Variable with name '", varName, "' does not exit in DataSet (anymore)."))
-            else if (self$yVars$has(varName)) self$yVars$remove(varName)
+            else if (stopIfNotExists && !self$yVars$has(varName)) stop(paste0("Variable with name '", varName, "' does not exit in DataSet (anymore)."))
+            else if (self$yVars$has(varName)) { # remove variable
+                dsNew <- self$clone(deep = TRUE)
+                dsNew$yVars$remove(varName)
+                self$addChild(dsNew)
+                return(dsNew)
+            }
+            return(self)
         },
         #' @deleteVariable@ is the same as @removeVariable@.
         deleteVariable = function(...) self$removeVariable(...),
+        #' Preprocess data set with given `Preprocessor` objects. All parameters must implement the `Preprocessor` class/interface.
+        #'
+        #' @param preprocs List of preprocessors, each must implement the `Preprocessor` interface.
+        #' @return void
         preprocess = function(preprocs) {
             if (!is.list(preprocs) && "Preprocessor" %in% class(preprocs)) preprocs <- list(preprocs)
             if (rhaskell::any(function(x) !("Preprocessor" %in% class(x)), preprocs))

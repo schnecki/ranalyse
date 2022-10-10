@@ -54,13 +54,13 @@ AggregateBy <- R6::R6Class(
                     return(private$.process(data))
                 }, seq(1, ite(base::is.data.frame(xs), dim(xs)[[2]], 1)))
                 names(res) <- names(xs)
-                return(tibble::as.tibble(res, nrow = 1, ncol = length(res)))
+                return(tibble::as_tibble(res, nrow = 1, ncol = length(res)))
             } else {
                 if (self$na.rm) data <- tidyr::drop_na(xs)
                 res <- private$.process(data)
                 if (tibble::is_tibble(res)) return(res)
                 if (rhaskell::null(names(res))) names(res) <- names(xs) # suppose same names
-                return(tibble::as.tibble(res, nrow = 1, .name_repair = "unique"))
+                return(tibble::as_tibble(res, nrow = 1, .name_repair = "unique"))
 
             }
     }
