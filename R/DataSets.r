@@ -35,10 +35,10 @@ DataSets <- R6::R6Class(
         #' @param column: column name to apply function to.
         #' @param funDesc: Textual description of function.
         #' @return a new DataSets object.
-        fmap = function(fun, column, funDesc = deparse1(fun)) {
-            if (base::is.list(column)) stop("Cannot use multiple columns in function `fmap`")
-            dss <- rhaskell::map(function(ds) ds$fmap(fun, column, funDesc), self$datasets)
-            dsNew <- DataSets$new(paste0(self$name, " fmapped"), dss, desc = paste0("fmapped ", funDesc, " over ", column))
+        map = function(fun, column, funDesc = deparse1(fun)) {
+            if (base::is.list(column)) stop("Cannot use multiple columns in function `map`")
+            dss <- rhaskell::map(function(ds) ds$map(fun, column, funDesc), self$datasets)
+            dsNew <- DataSets$new(paste0(self$name, " mapped"), dss, desc = paste0("mapped ", funDesc, " over ", column))
             self$addChild(dsNew)
             return(dsNew)
         },
@@ -102,6 +102,18 @@ DataSets <- R6::R6Class(
                 }
             }
             return(coreModels)
+        },
+        #' Plot descriptive information of all variables and datasets.
+        #' All graphs are written to files.
+        #'
+        #' @param parentPath Character Parent path (must exist). Default: "."
+        #' @param resultFolder Character Folder to place results into. Default "results"
+        #' @param descriptivesFolder Character Folder to place descriptive information into. Default "descriptives"
+        #' @param dataSetFolder Bool Create a a subfolder for for each dataset. Default: TRUE
+        plotDescriptives = function(parentPath = ".", resultFolder = "results", descriptivesFolder = "descriptives", dataSetFolder = TRUE) {
+            path <- paste0(parentPath, "/", resultFolder)
+            if (!dir.exists(path)) dir.create(path, recursive = TRUE)
+            rhaskell::mapM_(function(ds) ds$plotDescriptives(path, descriptivesFolder, dataSetFolder), self$datasets)
         }
 
     ),

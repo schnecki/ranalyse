@@ -57,14 +57,14 @@ DataSet <- R6::R6Class(
         #' @param column: column name to apply function to.
         #' @param funDesc: Textual description of function.
         #' @return a new DataSet object.
-        fmap = function(fun, column, funDesc = deparse1(fun)) {
-            if (base::is.list(column)) stop("Cannot use multiple columns in function `fmap`")
+        map = function(fun, column, funDesc = deparse1(fun)) {
+            if (base::is.list(column)) stop("Cannot use multiple columns in function `map`")
             var <- self$getVariable(column)
-            varNew <- var$fmap(fun, funDesc)
+            varNew <- var$map(fun, funDesc)
             dsNew <- self$clone(deep = TRUE)
             dsNew$replaceVariable(varNew)
-            np <- NodeProcessor$new("fmap")
-            procNode <- NodeProcessor$new(paste0("fmap(", funDesc, ",", column, ")"))
+            np <- NodeProcessor$new("map")
+            procNode <- NodeProcessor$new(paste0("map(", funDesc, ",", column, ")"))
             self$addChild(procNode)
             procNode$addChild(dsNew)
             return(dsNew)
@@ -236,6 +236,22 @@ DataSet <- R6::R6Class(
                     rhaskell::mapM_(self$removeVariable, inputNames)
                 }
             }
+        },
+        #' Plot descriptive information of all variables.
+        #' All graphs are written to files.
+        #'
+        #' @param parentPath Character Parent path (must exist). Default: "."
+        #' @param descriptivesFolder Character Folder to place descriptive information into. Default "descriptives"
+        #' @param dataSetFolder Bool Create a a subfolder for for each dataset. Default: TRUE
+        plotDescriptives = function(parentPath = ".", descriptivesFolder = "descriptives", dataSetFolder = TRUE) {
+            path <- paste0(parentPath, "/", descriptivesFolder)
+            if (dataSetFolder) path <- paste0(path, "/", self$name)
+            if (!dir.exists(path)) dir.create(path, recursive = TRUE)
+            xAxis <- self$xVar$plotXAxis() # create x values
+            mkFileName <- function(var) return(paste0(self$name, "_desc_", var$name))
+            vars <- rhaskell::filter(function(x) x$isNumeric, self$variablesY)
+            plots <- Plots$new(rhaskell::map(function(v) Plot$new(v$name, v$plotData(self$xVar), xAxis = xAxis, subtitle = "Descriptive Information", path = path, filename = mkFileName(v)), vars))
+            plots$plot()
         }
     ),
 
@@ -265,12 +281,16 @@ DataSet <- R6::R6Class(
         },
         ##' Number of y-variables.
         length = function() private$.yVars$length,
-        ##' Rows of each variable
+        ##' Number of rows.
         rows = function() self$xVar$rows,
         ##' All variables names, i.e. x and y variable Names.
         variableNames = function() return(base::append(list(self$xVar$name), self$variableNamesY)),
         ##' Y variables names (without x-variable).
-        variableNamesY = function() return(as.list(self$yVars$keys))
+        variableNamesY = function() return(as.list(self$yVars$keys)),
+        ##' All variables, i.e. x- and y-Variables.
+        variables = function() return(base::append(list(self$xVar), as.list(self$yVars$values))),
+        ##' All variables, i.e. x- and y-Variables.
+        variablesY = function() return(as.list(self$yVars$values))
     )
 
 )

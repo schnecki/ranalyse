@@ -38,7 +38,9 @@ browser(expr={TRUE})##:ess-bp-end:##
             }
             private$.vals <- value
             return(self)
-        }
+        },
+        isDate = function() return(TRUE),
+        isNumeric = function() return(FALSE)
     )
 
 )

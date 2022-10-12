@@ -67,4 +67,5 @@ is.integer <- function(x) {
     return(base::is.numeric(x) && round(x) == x)
 }
 
+#' Function composition. Proxy for `rhaskell::comp` for easy infix usage.
 `%comp%` <- function(f, g) rhaskell::comp(f, g)

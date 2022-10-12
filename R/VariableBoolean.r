@@ -28,7 +28,10 @@ VariableBoolean <- R6::R6Class(
                 propError("vals", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.vals <- value
             return(self)
-        }
+        },
+        isBoolean = function() return(TRUE),
+        isNumeric = function() return(FALSE)
+
     )
 
 )

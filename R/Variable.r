@@ -50,10 +50,24 @@ Variable <- R6::R6Class(
         #' @param fun: function to apply of type `a -> b`.
         #' @param funDesc: Textual description of function.
         #' @return a new Variable object
-        fmap = function(fun, funDesc = deparse1(fun)) {
-            varNew <- Variable$fromData(self$name, base::unlist(rhaskell::map(fun, self$vals)), paste0("fmap(", funDesc, ",", self$desc, ")"))
+        map = function(fun, funDesc = deparse1(fun)) {
+            varNew <- Variable$fromData(self$name, base::unlist(rhaskell::map(fun, self$vals)), paste0("map(", funDesc, ",", self$desc, ")"))
             self$addChild(varNew)
             return(varNew)
+        },
+        #' Plot variable descriptive information
+        plotData = function(xVar) {
+            xVals <- xVar
+            if ("Variable" %in% class(xVar)) xVals <- xVals$vals
+            return(PlotData$fromData(self$name, xVals, self$vals))
+        },
+        #' Convert to PlotAxis object.
+        plotXAxis = function() {
+            return(PlotXAxis$new(data = self$vals, label = self$name, isContinous = self$isNumeric))
+        },
+        #' Convert to PlotAxis object.
+        plotYAxis = function() {
+            return(PlotAxis$new(label = self$name, direction = Axis$Y, isContinous = self$isNumeric))
         }
     ),
 
@@ -82,7 +96,12 @@ Variable <- R6::R6Class(
                 propError("name", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.name <- value
             return(self)
-        }
+        },
+        isDate = function() return(FALSE),
+        isFactor = function() return(FALSE),
+        isBoolean = function() return(FALSE),
+        isString = function() return(FALSE),
+        isNumeric = function() return(TRUE)
     ),
     cloneable = FALSE
 )
@@ -101,7 +120,7 @@ Variable$set("public", "clone", function(deep = TRUE) {
 #' @param desc string Description of variable
 Variable$fromData <- function(name, data, desc = NULL) {
     if (!rhaskell::all(rhaskell::and %comp% rhaskell::pEq(base::class(data[[1]])) %comp% base::class, data))
-        stop("Not all data types of vector/matrix/tibble are different when creating a new Variable. The must be the same!")
+        stop("Not all data types of vector/matrix/tibble are equal when creating a new Variable. The must be the same!")
 
     ## Convert matrices to tibbles (= data.frames)
     if (base::is.matrix(data)) data <- tibble::as_tibble(data)
