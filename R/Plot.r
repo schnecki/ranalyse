@@ -46,8 +46,6 @@ Plot <- R6::R6Class(
             path <- Maybe$fromNullable(self$path)$fromMaybe(".")
             file <- paste0(path, "/", fn)
             plot <- ggplot()
-            ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
             plot <- rhaskell::foldl(function(p, plotData) p + plotData$plot(), plot, self$plotData) # add all data
 
 

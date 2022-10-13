@@ -5,6 +5,7 @@
 PlotDataType <- Enum(
     ## Values
     GeomPoint,
+    GeomLine,
     GeomQuantile,
     StatBoxplot
     )

@@ -13,7 +13,7 @@ PlotData <- R6::R6Class(
 
         #' Function returns type for plotting
         .autoDetectType = function() {
-            return(inferPlotDataType(self$data))
+            return(inferPlotDataType(self$yVals))
         }
 
     ),
@@ -29,12 +29,14 @@ PlotData <- R6::R6Class(
         },
         plot = function() {
             tp <- private$.autoDetectType()
+            df <- tibble::add_column(self$xVals, self$yVals)
+            xName <- attributes(df)$names[[1]]
+            yName <- attributes(df)$names[[2]]
+
             ##:ess-bp-start::conditional@:##
 browser(expr={TRUE})##:ess-bp-end:##
-            df <- tibble::add_column(xVals, yVals)
-
             if (tp == PlotDataType$GeomPoint)
-                return(ggplot2::geom_point(data = self$data, mapping = aes(x = x, y = self$data), na.rm = TRUE))
+                return(ggplot2::geom_point(data = df, mapping = aes(x = xName, y = yName), na.rm = TRUE))
             else
                 stop("Unkown plot type in PlotData.r: ", tp)
         }
