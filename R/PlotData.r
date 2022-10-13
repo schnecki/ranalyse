@@ -7,9 +7,10 @@ PlotData <- R6::R6Class(
 
     ## Properties
     private = list(
-        .name = NULL, # Character
-        .xVals = NULL, # DataFrame
-        .yVals = NULL, # DataFrame
+        .name = NULL,         # Character
+        .xVals = NULL,        # DataFrame
+        .yVals = NULL,        # DataFrame
+        .plotDataType = NULL, # PlotDataType
 
         #' Function returns type for plotting
         .autoDetectType = function() {
@@ -20,15 +21,17 @@ PlotData <- R6::R6Class(
 
     ## Methods
     public = list(
-        initialize = function(name, xVals, yVals) {
+        initialize = function(name, xVals, yVals, plotDataType = NULL) {
             self$name <- name
             if (base::nrow(xVals) != base::nrow(yVals))
                 stop("PlotData$initialize(..): number of rows for x and y-values have to be equal!")
             self$xVals <- tibble::as.tibble(xVals)
             self$yVals <- tibble::as.tibble(yVals)
+            self$plotDataType <- plotDataType
+
         },
         plot = function() {
-            tp <- private$.autoDetectType()
+            tp <- Maybe$fromNullable(self$plotDataType)$fromMaybe(private$.autoDetectType())
             df <- tibble::add_column(self$xVals, self$yVals)
             xName <- attributes(df)$names[[1]]
             yName <- attributes(df)$names[[2]]

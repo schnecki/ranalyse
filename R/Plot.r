@@ -26,7 +26,7 @@ browser(expr={TRUE})##:ess-bp-end:##
             xVals <- rhaskell::map(function(dt) dt$xVals, self$plotData)
             ## xVals <- rhaskell::map(function(dt) dt$xVals, self$plotData)
             stop("TODO")
-        },
+        }
 
     ),
 
@@ -125,14 +125,14 @@ browser(expr={TRUE})##:ess-bp-end:##
         },
         xAxis = function(value) {
             if (missing(value)) return(private$.xAxis)
-            if (!("PlotXAxis" %in% class(value)))
+            if (!(base::is.null(value) || "PlotXAxis" %in% class(value)))
                 propError("xAxis", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.xAxis <- value
             return(self)
         },
         yAxis = function(value) {
             if (missing(value)) return(private$.yAxis)
-            if (!("PlotAxis" %in% class(value)))
+            if (!(base::is.null(value) || "PlotAxis" %in% class(value)))
                 propError("yAxis", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.yAxis <- value
             return(self)

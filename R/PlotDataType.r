@@ -16,6 +16,7 @@ PlotDataType <- Enum(
 inferPlotDataType <- function(data) {
     if (!base::is.data.frame(data)) stop("GeomType$fromData: Expecting a DataFrame as input.")
 
+    ## idea: points for high variation in y-scale, lines otherwise
     warning("TODO")
     return(PlotDataType$GeomPoint)
 }

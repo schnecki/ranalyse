@@ -250,7 +250,8 @@ DataSet <- R6::R6Class(
             xAxis <- self$xVar$plotXAxis() # create x values
             mkFileName <- function(var) return(paste0(self$name, "_desc_", var$name))
             vars <- rhaskell::filter(function(x) x$isNumeric, self$variablesY)
-            plots <- Plots$new(rhaskell::map(function(v) Plot$new(v$name, v$plotData(self$xVar), xAxis = xAxis, subtitle = "Descriptive Information", path = path, filename = mkFileName(v)), vars))
+            plots <- Plots$new(rhaskell::map(function(v) Plot$new(title = v$name, plotData = v$plotData(self$xVar), ## xAxis = xAxis,
+                                                                  subtitle = "Descriptive Information", path = path, filename = mkFileName(v)), vars))
             plots$plot()
         }
     ),
