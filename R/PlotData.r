@@ -70,7 +70,15 @@ browser(expr={TRUE})##:ess-bp-end:##
                 propError("yVals", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.yVals <- value
             return(self)
+        },
+        plotDataType = function(value) {
+            if (missing(value)) return(private$.plotDataType)
+            if (!(base::is.null(value) || ("integer" == class(value) && value <= length(PlotDataType))))
+                propError("plotDataType", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+            private$.plotDataType <- value
+            return(self)
         }
+
     )
 )
 
