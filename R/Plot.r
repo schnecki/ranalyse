@@ -14,7 +14,20 @@ Plot <- R6::R6Class(
         .xAxis = NULL,    # PlotAxis
         .yAxis = NULL,    # PlotAxis
         ## .zAxis = NULL,    # PlotAxis
-        .plotData = NULL      # List<PlotData>
+        .plotData = NULL,      # List<PlotData>
+
+        #' Possibly infer X-Axis from data and generate plot
+        mkXAxis = function() {
+            if (!base::is.null(self$xAxis)) return(self$xAxis)
+            if (base::is.null(self$plotData) || rhaskell::null(self$plotData))
+                stop("No data in Plot-object. Cannot generate x-axis from data!")
+            ##:ess-bp-start::conditional@:##
+browser(expr={TRUE})##:ess-bp-end:##
+            xVals <- rhaskell::map(function(dt) dt$xVals, self$plotData)
+            ## xVals <- rhaskell::map(function(dt) dt$xVals, self$plotData)
+            stop("TODO")
+        },
+
     ),
 
     ## Methods
@@ -25,7 +38,7 @@ Plot <- R6::R6Class(
             self$path <- path
             self$filename <- filename
             self$xAxis <- xAxis
-            ## self$yAxis <- yAxis
+            self$yAxis <- yAxis
             if (!base::is.list(plotData) && "PlotData" %in% class(plotData)) plotData <- list(plotData)
             self$plotData <- plotData
         },

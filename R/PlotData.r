@@ -37,6 +37,8 @@ PlotData <- R6::R6Class(
 browser(expr={TRUE})##:ess-bp-end:##
             if (tp == PlotDataType$GeomPoint)
                 return(ggplot2::geom_point(data = df, mapping = aes(x = xName, y = yName), na.rm = TRUE))
+            else if (tp == PlotDataType$GeomLine)
+                return(ggplot2::geom_line(data = df, mapping = aes(x = xName, y = yName), na.rm = TRUE))
             else
                 stop("Unkown plot type in PlotData.r: ", tp)
         }
