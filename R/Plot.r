@@ -37,7 +37,7 @@ browser(expr={TRUE})##:ess-bp-end:##
             self$subtitle <- subtitle
             self$path <- path
             self$filename <- filename
-            self$xAxis <- xAxis
+            self$xAxis <- Maybe$fromNullable(xAxis).alt(Maybe$fromNullable())
             self$yAxis <- yAxis
             if (!base::is.list(plotData) && "PlotData" %in% class(plotData)) plotData <- list(plotData)
             self$plotData <- plotData
@@ -60,6 +60,7 @@ browser(expr={TRUE})##:ess-bp-end:##
             file <- paste0(path, "/", fn)
             plot <- ggplot()
             plot <- rhaskell::foldl(function(p, plotData) p + plotData$plot(), plot, self$plotData) # add all data
+            ## plot <-
 
 
             ## theme_set(theme_grey())

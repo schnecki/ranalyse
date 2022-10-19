@@ -8,15 +8,12 @@ PlotXAxis <- R6::R6Class(
 
     ## Properties
     private = list(
-        .data = NULL,          # DataFrame
-        .label = NULL,         # String
-        .direction = NULL,     # PlotAxisDirection: Axis (Enum)
-        .isContinous = FALSE   # Bool
+        .data = NULL          # DataFrame
     ),
 
     ## Methods
     public = list(
-        initialize = function(data, label = "x", isContinous = FALSE) {
+        initialize = function(data, label = "x", isContinous = !base::is.integer(data)) {
             super$initialize(label, Axis$X, isContinous)
             self$data <- data
         },
