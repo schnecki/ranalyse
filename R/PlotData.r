@@ -37,8 +37,6 @@ PlotData <- R6::R6Class(
             yName <- attributes(df)$names[[2]]
             df <- as.data.frame(df)
 
-            ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
             if (tp == PlotDataType$GeomPoint)
                 return(ggplot2::geom_point(data = df, mapping = aes(x = xName, y = yName), na.rm = TRUE))
             else if (tp == PlotDataType$GeomLine)
@@ -47,13 +45,9 @@ browser(expr={TRUE})##:ess-bp-end:##
                 stop("Unkown plot type in PlotData.r: ", tp)
         },
         mkXAxis = function() {
-            if (ranalyse::is.date(self$xVals[[1]])) {
-                return(ggplot2::scale_x_date("day", date_breaks = "1 year", date_labels = "%Y")) # TODO: enhance
-            } else if (base::is.factor(self$xVals[[1]] || base::is.integer(self$xVals))) {
-                return(scale_x_discrete())
-            } else {
-                return(scale_x_continuous())
-            }
+            ##:ess-bp-start::conditional@:##
+browser(expr={TRUE})##:ess-bp-end:##
+            return(PlotDataXAxis$new(data = self$xVals, label = self$name))
         }
     ),
 

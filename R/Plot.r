@@ -23,9 +23,8 @@ Plot <- R6::R6Class(
                 stop("No data in Plot-object. Cannot generate x-axis from data!")
             ##:ess-bp-start::conditional@:##
 browser(expr={TRUE})##:ess-bp-end:##
-            xVals <- rhaskell::map(function(dt) dt$xVals, self$plotData)
-            ## xVals <- rhaskell::map(function(dt) dt$xVals, self$plotData)
-            stop("TODO")
+            axes <- rhaskell::map(function(dt) dt$mkXAxis(), self$plotData)
+            return(rhaskell::foldl(function(acc, x) acc$mergeAssoc(x)))
         }
 
     ),
@@ -37,7 +36,7 @@ browser(expr={TRUE})##:ess-bp-end:##
             self$subtitle <- subtitle
             self$path <- path
             self$filename <- filename
-            self$xAxis <- Maybe$fromNullable(xAxis).alt(Maybe$fromNullable())
+            self$xAxis <- Maybe$fromNullable(xAxis)$alt(Maybe$fromNullable(plotData)$maybe(NULL, function(x) x$mkXAxis()))
             self$yAxis <- yAxis
             if (!base::is.list(plotData) && "PlotData" %in% class(plotData)) plotData <- list(plotData)
             self$plotData <- plotData
@@ -52,6 +51,8 @@ browser(expr={TRUE})##:ess-bp-end:##
         },
         #' Plot the object. This automatically writes the file.
         plot = function() {
+            if (rhaskell::null(self$plotData))
+                stop("Plot$plot(): No data for plotting available")
             fn <- Maybe$fromNullable(self$filename)$fromMaybe(self$title) # filename, or use title instead
             formats <- list("eps", "ps", "tex", "pdf", "jpeg", "tiff", "png", "bmp", "svg", "wmf")
             if (!rhaskell::any(function(fmt) base::grepl(fmt, fn, fixed = TRUE), formats))
@@ -60,7 +61,8 @@ browser(expr={TRUE})##:ess-bp-end:##
             file <- paste0(path, "/", fn)
             plot <- ggplot()
             plot <- rhaskell::foldl(function(p, plotData) p + plotData$plot(), plot, self$plotData) # add all data
-            ## plot <-
+            plot <- Maybe$fromNullable(self$xAxis)$alt(self$mkXAxis())$bind(function(x) plot + x$plot())$fromMaybe(plot)
+            plot <- Maybe$fromNullable(self$yAxis)$alt(self$mkYAxis())$bind(function(x) plot + x$plot())$fromMaybe(plot)
 
 
             ## theme_set(theme_grey())

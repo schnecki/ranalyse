@@ -61,13 +61,13 @@ Variable <- R6::R6Class(
             if ("Variable" %in% class(xVar)) xVals <- xVals$vals
             return(PlotData$fromData(self$name, xVals, self$vals))
         },
-        #' Convert to PlotAxis object.
-        plotXAxis = function() {
-            return(PlotXAxis$new(data = self$vals, label = self$name, isContinous = self$isNumeric))
+        #' Convert to PlotDataAxis object.
+        mkPlotDataXAxis = function() {
+            return(PlotDataXAxis$new(label = self$name, data = self$vals, isContinous = self$isNumeric))
         },
-        #' Convert to PlotAxis object.
-        plotYAxis = function() {
-            return(PlotAxis$new(label = self$name, direction = Axis$Y, isContinous = self$isNumeric))
+        #' Convert to PlotDataAxis object.
+        mkPlotDataYAxis = function() {
+            return(PlotDataYAxis$new(label = self$name, data = self$vals, isContinous = self$isNumeric))
         }
     ),
 
