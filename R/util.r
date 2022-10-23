@@ -69,3 +69,14 @@ is.integer <- function(x) {
 
 #' Function composition. Proxy for `rhaskell::comp` for easy infix usage.
 `%comp%` <- function(f, g) rhaskell::comp(f, g)
+
+
+is.discrete <- function(data) {
+    if (tibble::is_tibble(data)) {
+        return(rhaskell::all(is.integer, data[[1]]))
+    }
+    return(rhaskell::all(is.integer, data))
+}
+
+
+is.continous <- function(data) return(rhaskell::not(is.discrete(data)))

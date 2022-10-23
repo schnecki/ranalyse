@@ -247,16 +247,12 @@ DataSet <- R6::R6Class(
             path <- paste0(parentPath, "/", descriptivesFolder)
             if (dataSetFolder) path <- paste0(path, "/", self$name)
             if (!dir.exists(path)) dir.create(path, recursive = TRUE)
-            ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
             xAxis <- self$xVar$mkPlotDataXAxis() # create x values
             mkFileName <- function(var) return(paste0(self$name, "_desc_", var$name))
             vars <- rhaskell::filter(function(x) x$isNumeric, self$variablesY)
-            plots <- Plots$new(rhaskell::map(function(v) Plot$new(title = v$name,
-                                                                  ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
-plotData = v$plotData(self$xVar),
-                                                                  subtitle = "Descriptive Information", path = path, filename = mkFileName(v)), vars))
+            plots <- Plots$new(rhaskell::map(function(v)
+                Plot$new(title = v$name, xAxisTitle = "time", yAxisTitle = self$name, plotData = v$plotData(self$xVar),
+                         subtitle = "Descriptive Information", path = path, filename = mkFileName(v)), vars))
             plots$plot()
         }
     ),

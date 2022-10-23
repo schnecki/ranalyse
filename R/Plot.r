@@ -17,29 +17,33 @@ Plot <- R6::R6Class(
         .plotData = NULL,      # List<PlotData>
 
         #' Possibly infer X-Axis from data and generate plot
-        mkXAxis = function() {
+        inferXAxis = function() {
             if (!base::is.null(self$xAxis)) return(self$xAxis)
-            if (base::is.null(self$plotData) || rhaskell::null(self$plotData))
+            if (rhaskell::null(self$plotData))
                 stop("No data in Plot-object. Cannot generate x-axis from data!")
-            ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
             axes <- rhaskell::map(function(dt) dt$mkXAxis(), self$plotData)
-            return(rhaskell::foldl(function(acc, x) acc$mergeAssoc(x)))
+            return(PlotAxis$new(rhaskell::Maybe$fromNullable(self$xAxis)$bind(function(x) x$title)$fromMaybe("time"), axes))
+        },
+        #' Infer Y-Axis from data and generate plot
+        inferYAxis = function() {
+            if (!base::is.null(self$yAxis)) return(self$yAxis)
+            if (rhaskell::null(self$plotData))
+                stop("No data in Plot-object. Cannot generate y-axis from data!")
+            axes <- rhaskell::map(function(dt) dt$mkYAxis(), self$plotData)
+            return(PlotAxis$new(rhaskell::Maybe$fromNullable(self$yAxis)$bind(function(x) x$title)$fromMaybe("y"), axes))
         }
-
     ),
 
     ## Methods
     public = list(
-        initialize = function(title, plotData = NULL, xAxis = NULL, yAxis = NULL, subtitle = NULL, path = NULL, filename = NULL) {
+        initialize = function(title, xAxisTitle = "time", yAxisTitle = "y", plotData = NULL, subtitle = NULL, path = NULL, filename = NULL) {
             self$title <- title
             self$subtitle <- subtitle
             self$path <- path
             self$filename <- filename
-            self$xAxis <- Maybe$fromNullable(xAxis)$alt(Maybe$fromNullable(plotData)$maybe(NULL, function(x) x$mkXAxis()))
-            self$yAxis <- yAxis
-            if (!base::is.list(plotData) && "PlotData" %in% class(plotData)) plotData <- list(plotData)
-            self$plotData <- plotData
+            self$plotData <- rhaskell::Maybe$fromNullable(plotData)$maybe(base::list(), base::list)
+            self$xAxis <- PlotAxis$new(xAxisTitle, rhaskell::map(function(x) x$mkPlotDataXAxis(), self$plotData))
+            self$yAxis <- PlotAxis$new(yAxisTitle, rhaskell::map(function(x) x$mkPlotDataYAxis(), self$plotData))
         },
         #' Add a PlotData object to plot.
         #'
@@ -47,22 +51,26 @@ browser(expr={TRUE})##:ess-bp-end:##
         #' @param data dataframe/matrix/vector/list of numericals
         addPlotData = function(name, plotData) {
             self$plotData <- base::append(self$plotData, plotData)
+            self$xAxis$addPlotDataAxis(plotData$mkPlotDataXAxis())
+            self$yAxis$addPlotDataAxis(plotData$mkPlotDataYAxis())
             return(self)
         },
         #' Plot the object. This automatically writes the file.
         plot = function() {
             if (rhaskell::null(self$plotData))
                 stop("Plot$plot(): No data for plotting available")
-            fn <- Maybe$fromNullable(self$filename)$fromMaybe(self$title) # filename, or use title instead
+            fn <- rhaskell::Maybe$fromNullable(self$filename)$fromMaybe(self$title) # filename, or use title instead
             formats <- list("eps", "ps", "tex", "pdf", "jpeg", "tiff", "png", "bmp", "svg", "wmf")
             if (!rhaskell::any(function(fmt) base::grepl(fmt, fn, fixed = TRUE), formats))
                 fn <- paste0(fn, ".pdf") # use pdf as default
-            path <- Maybe$fromNullable(self$path)$fromMaybe(".")
+            path <- rhaskell::Maybe$fromNullable(self$path)$fromMaybe(".")
             file <- paste0(path, "/", fn)
             plot <- ggplot()
             plot <- rhaskell::foldl(function(p, plotData) p + plotData$plot(), plot, self$plotData) # add all data
-            plot <- Maybe$fromNullable(self$xAxis)$alt(self$mkXAxis())$bind(function(x) plot + x$plot())$fromMaybe(plot)
-            plot <- Maybe$fromNullable(self$yAxis)$alt(self$mkYAxis())$bind(function(x) plot + x$plot())$fromMaybe(plot)
+            ##:ess-bp-start::conditional@:##
+browser(expr={TRUE})##:ess-bp-end:##
+            plot <- rhaskell::Maybe$fromNullable(self$xAxis)$alt(self$inferXAxis())$bind(function(x) plot + x$plot())$fromMaybe(plot)
+            plot <- rhaskell::Maybe$fromNullable(self$yAxis)$alt(self$inferYAxis())$bind(function(x) plot + x$plot())$fromMaybe(plot)
 
 
             ## theme_set(theme_grey())
@@ -78,9 +86,7 @@ browser(expr={TRUE})##:ess-bp-end:##
             ##     scale_y_continuous("counts" )+
             ##     facet_wrap(city~., nrow = 2, scales = "free") +
             ##     ggtitle("SO2 by intervention period in each city",subtitle = "time scale: month; 0:pre-intervention; 3: post-intervention")
-            ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
-            ggsave(filename = fn, width = 27, height = 22, dpi = 600, units = "cm")
+            ggsave(filename = file, width = 27, height = 22, dpi = 600, units = "cm")
 
 
         }
@@ -128,7 +134,7 @@ browser(expr={TRUE})##:ess-bp-end:##
         },
         xAxis = function(value) {
             if (missing(value)) return(private$.xAxis)
-            if (!(base::is.null(value) || "PlotXAxis" %in% class(value)))
+            if (!(base::is.null(value) || "PlotAxis" %in% class(value)))
                 propError("xAxis", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.xAxis <- value
             return(self)

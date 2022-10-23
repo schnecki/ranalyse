@@ -44,10 +44,13 @@ PlotData <- R6::R6Class(
             else
                 stop("Unkown plot type in PlotData.r: ", tp)
         },
-        mkXAxis = function() {
-            ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
+        #' Create X-Axis Information.
+        mkPlotDataXAxis = function() {
             return(PlotDataXAxis$new(data = self$xVals, label = self$name))
+        },
+        #' Create Y-Axis Information.
+        mkPlotDataYAxis = function() {
+            return(PlotDataYAxis$new(data = self$yVals, label = self$name))
         }
     ),
 

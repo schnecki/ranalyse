@@ -15,14 +15,11 @@ PlotDataAxis <- R6::R6Class(
 
     ## Methods
     public = list(
-        initialize = function(label, data, direction = Axis$X, isContinous = !base::is.integer(data)) {
+        initialize = function(label, data, direction = Axis$X, isContinous = is.continous(data)) {
             self$label <- label
             self$data <- data
             self$direction <- direction
             self$isContinous <- isContinous
-        },
-        plot = function() {
-            stop("Function PlotDataAxis$plot() must be overriden!")
         }
     ),
 

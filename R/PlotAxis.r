@@ -15,23 +15,33 @@ PlotAxis <- R6::R6Class(
 
     ## Methods
     public = list(
-        initialize = function(title, plotDataAxes = list(), isContinous = FALSE) {
+        initialize = function(title, plotDataAxes = list()) {
             if (!base::is.null(plotDataAxes))
-            self$label <- label
-            self$isContinous <- isContinous
-            mapM_(function(x) self$addPlotDataAxis(x), plotDataAxes)
+            self$title <- title
+            rhaskell::mapM_(function(x) self$addPlotDataAxis(x), as.list(plotDataAxes))
         },
         plot = function() {
-            stop("Function PlotDataAxis$plot() must be overriden!")
+            ## stop("Function PlotDataAxis$plot() must be overriden!")
+            warning("TODO: PlotAxis$plot(): Enhance axis plotting!")
+            if (ranalyse::is.date(self$data[[1]])) {
+                return(ggplot2::scale_x_date(title = self$title, date_breaks = "1 year", date_labels = "%Y")) # TODO: enhance
+            } else if (self$isDiscrete) {
+                return(base::switch(self$direction, ggplot2::scale_x_discrete(name = self$title), ggplot2::scale_y_discrete(name = self$title)))
+            } else {
+                return(base::switch(self$direction, ggplot2::scale_x_continuous(name = self$title), ggplot2::scale_y_continuous(name = self$title)))
+            }
         },
         addPlotDataAxis = function(axis) {
             if (!"PlotDataAxis" %in% class(axis)) stop("PlotAxis$addPlotDataAxis(): Axis must be a class instance of PlotDataAxis")
-            if (rhaskell::null(self$plotDataAxes))
-                self$direction <- axis$direction()
+            if (rhaskell::null(self$plotDataAxes)) {
+                self$direction <- axis$direction
+                self$isContinous <- axis$isContinous
+            }
             self$plotDataAxes <- base::append(self$plotDataAxes, axis)
-            self$isContinous <- self$isContinous() && axis$isContinous()
-            if (self$direction() != axis$direction())
+            self$isContinous <- self$isContinous && axis$isContinous
+            if (self$direction != axis$direction)
                 stop("PlotAxis$addPlotDataAxis(): The directions have to be the same when adding a PlotDataAxis!")
+            return(self)
         }
     ),
 
@@ -40,16 +50,16 @@ PlotAxis <- R6::R6Class(
     active = list(
         plotDataAxes = function(value) {
             if (missing(value)) return(private$.plotDataAxes)
-            if (!(base::is.list(value) && rhaskell::all))
+            if (!(base::is.list(value) && rhaskell::all(function(x) "PlotDataAxis" %in% class(x), value)))
                 propError("plotDataAxes", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.plotDataAxes <- value
             return(self)
         },
-        label = function(value) {
-            if (missing(value)) return(private$.label)
+        title = function(value) {
+            if (missing(value)) return(private$.title)
             if (!(base::is.character(value)))
-                propError("xAxis", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
-            private$.label <- value
+                propError("title", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
+            private$.title <- value
             return(self)
         },
         direction = function(value) {
@@ -65,6 +75,12 @@ PlotAxis <- R6::R6Class(
                 propError("isContinous", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.isContinous <- value
             return(self)
+        },
+        isDiscrete = function(value) {
+            if (missing(value)) return(rhaskell::not(private$.isContinous))
+            self$isContinous <- rhaskell::not(value)
+            return(self)
         }
+
     )
 )
