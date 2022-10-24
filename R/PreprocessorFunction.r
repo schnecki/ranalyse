@@ -1,6 +1,6 @@
 #' PreprocessorFunction class.
 #'
-#' Applies a custom function on the whole list of input vectors/matrices.
+#' Applies a custom function on the whole tibble(s) of the input variables.
 #'
 #' @export PreprocessorFunction
 #' @exportClass PreprocessorFunction
@@ -15,7 +15,9 @@ PreprocessorFunction <- R6::R6Class(
 
         ## Processor function
         .process = function(inputValues) {
-            return(do.call(self$fun, inputValues))
+            ## Apply to all rows, one-by-one (needed to be able to handle different data types: Date, Numeric, etc)
+            res <- rhaskell::map(function(i) do.call(self$fun, rhaskell::map(function(xs) xs[[i]], inputValues)), base::seq_len(base::length(inputValues[[1]])))
+            return(res[[1]])
         },
         .getDefaultDesc = function() {
             return(paste0(self$funName, "(", paste(self$inputNames, collapse = ", "), ")"))

@@ -78,6 +78,8 @@ DataSets <- R6::R6Class(
             self$addChild(dsNew)
             return(dsNew)
         },
+        #' Create a core model for each dataset
+        #' TODO!!!
         createCoreModelsFor = function(outcomes, fitters, formulas, adaptions, selection) {
             if (!base::is.list(outcomes)) outcomes <- list(outcomes)
             if (!base::is.list(fitters))  fitters  <- list(fitters)
@@ -102,6 +104,36 @@ DataSets <- R6::R6Class(
                 }
             }
             return(coreModels)
+        },
+        #' Create CITS Model
+        #' TODO: improve interface to no require 1/0 vectors for periods
+        #'
+        createCITSModel = function(mainDsName, outcome, ) {
+
+
+            ## if (!base::is.list(outcomes)) outcomes <- list(outcomes)
+            ## if (!base::is.list(fitters))  fitters  <- list(fitters)
+            ## if (!base::is.list(formulas)) formulas <- list(formulas)
+            ## coreModels <- CoreModelSelectors$new(paste0("Possible Core Models for DataSets of '", self$name, "'"), self)
+
+            ## for (ds in self$datasets) {
+            ##     env <- ds$asEnvironment() # create environment
+            ##     for (y in outcomes) {
+            ##         selector <- CoreModelSelector$new(paste(ds$name, y), ds)
+            ##         for (fitter in fitters) {
+            ##             for (formula in formulas) {
+            ##                 fitter$data <- env                   # set data frame
+            ##                 fit <- fitter$fit(paste(y, formula)) # fit model
+            ##                 selector$addPossibleCoreModel(fit)   # save as possible model
+            ##             }
+            ##         }
+            ##         if (!selector$hasAnyConvergedModel()){
+            ##             stop("No core model for dataset '", ds$name, "' and '", y, "' converge. Cannot proceed")
+            ##         }
+            ##         coreModels$addCoreModelSelector(y, selector)
+            ##     }
+            ## }
+            ## return(coreModels)
         },
         #' Plot descriptive information of all variables and datasets.
         #' All graphs are written to files.

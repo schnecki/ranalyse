@@ -44,7 +44,14 @@ Variable <- R6::R6Class(
                 return(Variable$fromData(self$name, valsNew, desc = paste0("crop(", self$name, ") w/ ", length(valsNew), "/", self$rows, " rows")))
             }
         },
-        asMatrix = function() as.matrix(private$.vals),
+        #' Convert to a matrix. Note that matrices can only have one primitive types. If you have a column of type @Date@ this will convert all columns to strings.
+        asMatrix = function() base::as.matrix(private$.vals),
+        #' Convert to a vector.
+        asVector = function() base::as.vector(private$.vals),
+        #' Convert to a tibble.
+        asTibble = function() private$.vals,
+        #' Convert to a dataFrame.
+        asDataFrame = function() tibble::as_data_frame(private$.vals),
         #' Apply a function `f :: a -> b` to each element and returns a new variable object with the modified data.
         #'
         #' @param fun: function to apply of type `a -> b`.
@@ -110,6 +117,9 @@ Variable <- R6::R6Class(
 Variable$set("public", "clone", function(deep = TRUE) {
     return(Variable$new(self$name, self$vals, self$desc))
 })
+
+#' Helper function to get variable values. Can be used in Lambda instead of `function(v) v$vals`.
+Variable$vals <- function(self) return(self$vals)
 
 
 #' Function used to create a new variable. It checks for the type of data and selects an appropriate

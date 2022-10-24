@@ -83,9 +83,9 @@ Preprocessor <- R6::R6Class(
         inputValues = function(value) {
             if (missing(value)) return(private$.inputValues)
             if (!is.list(value)) value <- list(value)
-            if (!(base::is.list(value) && (rhaskell::all(base::is.numeric, value) || rhaskell::all(ranalyse::is.date, value)))) {
-                ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
+            if (!((base::is.list(value) &&
+                   rhaskell::all(function(xs) tibble::is_tibble(xs) || (base::is.list(xs) && (rhaskell::all(base::is.numeric, xs) || rhaskell::all(ranalyse::is.date, xs)))
+                               , value)))) {
                 propError("inputValues", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             }
             private$.inputValues <- value

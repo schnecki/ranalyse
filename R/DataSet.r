@@ -226,7 +226,7 @@ DataSet <- R6::R6Class(
                 prep <- prepObj$clone(deep = TRUE) # make a clone in case it is used more than once
                 prep$parent <- ndProc
                 inputNames <- prep$inputNames
-                inputValues <- rhaskell::map((function(v) v$asMatrix()) %comp% self$getVariable, inputNames)
+                inputValues <- rhaskell::map(Variable$vals %comp% self$getVariable, inputNames)
                 prep$dataset <- self
                 newVar <- prep$preprocess(inputValues)
                 ## Add new variable(s)

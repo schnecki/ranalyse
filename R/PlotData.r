@@ -31,16 +31,16 @@ PlotData <- R6::R6Class(
 
         },
         plot = function() {
-            tp <- Maybe$fromNullable(self$plotDataType)$fromMaybe(private$.autoDetectType())
+            tp <- rhaskell::Maybe$fromNullable(self$plotDataType)$fromMaybe(private$.autoDetectType())
             df <- tibble::add_column(self$xVals, self$yVals)
             xName <- attributes(df)$names[[1]]
             yName <- attributes(df)$names[[2]]
             df <- as.data.frame(df)
 
             if (tp == PlotDataType$GeomPoint)
-                return(ggplot2::geom_point(data = df, mapping = aes(x = xName, y = yName), na.rm = TRUE))
+                return(ggplot2::geom_point(data = df, mapping = ggplot2::aes_string(x = xName, y = yName), na.rm = TRUE))
             else if (tp == PlotDataType$GeomLine)
-                return(ggplot2::geom_line(data = df, mapping = aes(x = xName, y = yName), na.rm = TRUE))
+                return(ggplot2::geom_line(data = df, mapping = ggplot2::aes_string(x = xName, y = yName), na.rm = TRUE))
             else
                 stop("Unkown plot type in PlotData.r: ", tp)
         },

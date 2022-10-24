@@ -67,8 +67,6 @@ Plot <- R6::R6Class(
             file <- paste0(path, "/", fn)
             plot <- ggplot()
             plot <- rhaskell::foldl(function(p, plotData) p + plotData$plot(), plot, self$plotData) # add all data
-            ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
             plot <- rhaskell::Maybe$fromNullable(self$xAxis)$alt(self$inferXAxis())$bind(function(x) plot + x$plot())$fromMaybe(plot)
             plot <- rhaskell::Maybe$fromNullable(self$yAxis)$alt(self$inferYAxis())$bind(function(x) plot + x$plot())$fromMaybe(plot)
 

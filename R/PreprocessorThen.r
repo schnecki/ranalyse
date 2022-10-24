@@ -26,7 +26,7 @@ PreprocessorThen <- R6::R6Class(
             inputValuesSecond <- list()
             idx <- 1
             for (n in self$prepSecond$inputNames) {
-                if (n == self$prepFirst$outputName) inputValuesSecond <- base::append(inputValuesSecond, list(output1$asMatrix()))
+                if (n == self$prepFirst$outputName) inputValuesSecond <- base::append(inputValuesSecond, list(output1$vals))
                 else {
                     inputValuesSecond <- base::append(inputValuesSecond, list(basicInputValuesSecond[[idx]]))
                     idx <- idx + 1
