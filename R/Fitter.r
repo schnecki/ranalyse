@@ -53,9 +53,7 @@ Fitter <- R6::R6Class(
                 return(NULL)
             })
 
-
             warning("TODO: add AIFC/anvoa, etc")
-
             return(self)
         }
     ),

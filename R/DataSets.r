@@ -29,6 +29,14 @@ DataSets <- R6::R6Class(
                 warning("In DataSets$new(..) the xVar *names* are different. Using the first given xVar-name")
             self$xVar <- rhaskell::head(datasets)$xVar
         },
+        #' Get the dataset by the name.
+        #'
+        #' @param dsName Name of DataSet
+        #' @return rhaskell::Either Character DataSet
+        getDataSet = function(dsName) {
+            for (ds in self$datasets) if (ds$name == dsName) return(rhaskell::Right(ds))
+            return(rhaskell::Left(paste0("Could not find dataset with name '", dsName, "'")))
+        },
         #' Apply a function `f :: a -> b` to each element of  one specific column and for all DataSets.
         #'
         #' @param fun: function to apply of type `a -> b`.
@@ -108,8 +116,22 @@ DataSets <- R6::R6Class(
         #' Create CITS Model
         #' TODO: improve interface to no require 1/0 vectors for periods
         #'
-        createCITSModel = function(mainDsName, outcome, ) {
+        createCITSModel = function(mainDsName, outcomes, selectionVars, addModelSelection) {
+            ds <- self$getDataSet(mainDsName)$fromRightOrStop()
+            models <- list()
+            for (outcome in outcomes) {
+                fitter <- FitterGLM$new(family = stats::quasipoisson, na.action = "na.exclude")
+                fitter$data <- ds$asEnvironment()
+                rhs <- paste(base::append(selectionVars, addModelSelection), collapse = " + ")
+                ##:ess-bp-start::conditional@:##
+browser(expr={TRUE})##:ess-bp-end:##
+                fit <- fitter$fit(paste(outcome, "~", rhs))
+                periods <-
 
+                models <- base::append(models, model)
+            }
+
+            return(mdl)
 
             ## if (!base::is.list(outcomes)) outcomes <- list(outcomes)
             ## if (!base::is.list(fitters))  fitters  <- list(fitters)

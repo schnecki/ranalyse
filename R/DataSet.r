@@ -42,12 +42,16 @@ DataSet <- R6::R6Class(
             vals <- rhaskell::cons(self$xVar$vals, yVals)
             return(rhaskell::foldl(function(m, xs) base::cbind(m, base::as.matrix(xs$vals)), base::as.matrix(self$xVar$vals), self$yVars$values))
         },
-        ##' Convert to environment.
-        asEnvironment = function() {
+        #' Convert to environment.
+        #'
+        #' @param as_tibble add variables as tibbles, otherwise numeric values are used if possible.
+        asEnvironment = function(as_tibble = FALSE) {
             e <- rlang::env()
-            e[[self$xVar$name]] <- self$xVar$vals
-            return(rhaskell::foldl(function(env, var) {
-                env[[var$name]] <- var$vals
+            if (!as_tibble && self$xVar$isNumeric) e[[self$xVar$name]] <- self$xVar$asMatrix() # Add X-Variable
+            else                                   e[[self$xVar$name]] <- self$xVar$vals
+            return(rhaskell::foldl(function(env, var) { # Add all Y-Variables
+                if (!as_tibble && var$isNumeric) env[[var$name]] <- var$asMatrix()
+                else env[[var$name]] <- var$vals # always as tibble
                 return(env)
             }, e, self$yVars$values))
         },
