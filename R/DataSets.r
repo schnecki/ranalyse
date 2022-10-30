@@ -59,7 +59,18 @@ DataSets <- R6::R6Class(
         #' @return a new DataSet object.
         accumTo = function(newVarName, fun, columns, funDesc = deparse1(fun)) {
             dss <- rhaskell::map(function(ds) ds$accumTo(newVarName, fun, columns, funDesc), self$datasets)
-            dsNew <- DataSets$new(paste0(self$name, ", accumed"), dss, desc = paste0("accumulated by ", funDesc, " over ", paste0(columns, collapse = ",")))
+            dsNew <- DataSets$new(self$name, dss, desc = paste0("'", newVarName, "' created: accumulation with ", funDesc, " of ", paste0(columns, collapse = ",")))
+            self$addChild(dsNew)
+            return(dsNew)
+        },
+        #' Rename a variable over all DataSets
+        #'
+        #' @param newVarName: Name of new variable
+        #' @param oldVarName: Old variable name
+        #' @return a new DataSet object.
+        renameVariableTo = function(newVarName, oldVarName) {
+            dss <- rhaskell::map(function(ds) ds$addVariable(ds$getVariable(oldVarName)$rename(newVarName))$removeVariable(oldVarName), self$datasets)
+            dsNew <- DataSets$new(self$name, dss, desc = paste0("'", oldVarName, "' renamed to '", newVarName, "'"))
             self$addChild(dsNew)
             return(dsNew)
         },
@@ -123,10 +134,45 @@ DataSets <- R6::R6Class(
                 fitter <- FitterGLM$new(family = stats::quasipoisson, na.action = "na.exclude")
                 fitter$data <- ds$asEnvironment()
                 rhs <- paste(base::append(selectionVars, addModelSelection), collapse = " + ")
+                fit <- fitter$fit(paste(outcome, "~", rhs))
+                varNamePeriods <- "CITS_periods"
+                dssCITS <- self$accumTo(varNamePeriods, factor %comp% sum, selectionVars)
+                dsCITS <- dssCITS$getDataSet(mainDsName)$fromRightOrStop()
+
+                ## datanew <- tibble::new_tibble(dsCITS$xVar$asMatrix())
+                ## datanew <- tibble::add_column(datanew, dsCITS$getVariable(varNamePeriods)$asMatrix())
+                ## datanew <- rhaskell::foldl(function(df, out) tibble::add_column(df, dsCITS$getVariable(out)$asMatrix()), datanew, selectionVars)
+
+                preds <- stats::predict(fit$model, type = "response", newdata = dsCITS$asEnvironment())
+                                        # dpred <- data.frame(T = datanew$T, pred1 = stats::predict(fit$model, type = "response", newdata = datanew))
+
+                xVals <- dsCITS$xVar$asTibble()
+                yVals <- dsCITS$getVariable(outcome)$asTibble()
+                plDs <- rhaskell::map(function(sel) {
+                    selVals <- dsCITS$getVariable(sel)$asTibble()
+                    xs <- xVals[selVals == 1, ]
+                    ys <- yVals[selVals == 1, ]
+                    return(PlotDataGeomRect$new(sel, min(xs, na.rm = TRUE), max(xs, na.rm = TRUE), min(ys, na.rm = TRUE), max(ys, na.rm = TRUE)))
+                }, selectionVars)
                 ##:ess-bp-start::conditional@:##
 browser(expr={TRUE})##:ess-bp-end:##
-                fit <- fitter$fit(paste(outcome, "~", rhs))
-                periods <-
+                ## plDs <- base::append(plDs, list(PlotDataGeomPoint(name = outcome, aes(T, allrc),colour="azure4",alpha=0.5)))
+
+
+                ## p1<-ggplot() +
+                ##   geom_rect(data = data.frame(xmin = 36,xmax = 120, ymin = 50,ymax = 400),aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+                ##             fill = grisitot, alpha = 0.5) +
+                ##   geom_rect(data = data.frame(xmin = 36+24,xmax = 120, ymin = 50,ymax = 400),aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+                ##             fill = grisitot, alpha = 0.5) +
+                ##   geom_rect(data = data.frame(xmin = 36+24+16,xmax = 120, ymin = 50,ymax = 400),aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+                ##             fill = grisitot, alpha = 0.5) +
+                ##   geom_point(data = dSCTFm,aes(T, allrc),colour="azure4",alpha=0.5) +
+                ##   scale_x_continuous("month", breaks = 0:9*12, labels = 2008:2017)+
+                ##   geom_line(data = dpredcf,aes(T, pred1), colour = "orangered3",linetype=2,size=0.75) +
+                ##   geom_line(data = dpred,aes(T, pred1), colour = "firebrick1",size=1) +
+                ##   ggtitle("allrc, SCTF, 2008-2017",subtitle = "Only change in level, all periods. Mensual scale. Bf diagnosis")+
+                ##   theme_classic()
+
 
                 models <- base::append(models, model)
             }

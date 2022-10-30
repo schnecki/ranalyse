@@ -11,6 +11,9 @@ PlotData <- R6::R6Class(
         .xVals = NULL,        # DataFrame
         .yVals = NULL,        # DataFrame
         .plotDataType = NULL, # PlotDataType
+        .fill = NULL,         # character
+        .alpha = NULL,        # float
+        .colour = NULL,       # character
 
         #' Function returns type for plotting
         .autoDetectType = function() {
@@ -21,21 +24,27 @@ PlotData <- R6::R6Class(
 
     ## Methods
     public = list(
-        initialize = function(name, xVals, yVals, plotDataType = NULL) {
+        initialize = function(name, xVals, yVals, plotDataType = NULL, fill = NULL, alpha = NULL, colour = NULL) {
             self$name <- name
             if (base::nrow(xVals) != base::nrow(yVals))
                 stop("PlotData$initialize(..): number of rows for x and y-values have to be equal!")
-            self$xVals <- tibble::as.tibble(xVals)
-            self$yVals <- tibble::as.tibble(yVals)
+            self$xVals <- tibble::as_tibble(xVals)
+            self$yVals <- tibble::as_tibble(yVals)
             self$plotDataType <- plotDataType
-
+            self$fill <- fill
+            self$alpha <- alpha
+            self$colour <- colour
+        },
+        asDataFrame = function() {
+            df <- tibble::add_column(self$xVals, self$yVals)
+            xName <- base::attributes(df)$names[[1]]
+            yName <- base::attributes(df)$names[[2]]
+            df <- base::as.data.frame(df)
+            return(df)
         },
         plot = function() {
             tp <- rhaskell::Maybe$fromNullable(self$plotDataType)$fromMaybe(private$.autoDetectType())
-            df <- tibble::add_column(self$xVals, self$yVals)
-            xName <- attributes(df)$names[[1]]
-            yName <- attributes(df)$names[[2]]
-            df <- as.data.frame(df)
+            df <- self$asDataFrame()
 
             if (tp == PlotDataType$GeomPoint)
                 return(ggplot2::geom_point(data = df, mapping = ggplot2::aes_string(x = xName, y = yName), na.rm = TRUE))
@@ -84,7 +93,29 @@ PlotData <- R6::R6Class(
                 propError("plotDataType", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.plotDataType <- value
             return(self)
+        },
+        fill = function(value) {
+            if (missing(value)) return(private$.fill)
+            if (!(base::is.character(value) || base::is.null(value)))
+                stop("ERROR: Unallowed property ", value, " for 'fill' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+            private$.fill <- value
+            return(self)
+        },
+        alpha = function(value) {
+            if (missing(value)) return(private$.alpha)
+            if (!(base::is.numeric(value) || base::is.null(value)))
+                stop("ERROR: Unallowed property ", value, " for 'alpha' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+            private$.alpha <- value
+            return(self)
+        },
+        colour = function(value) {
+            if (missing(value)) return(private$.colour)
+            if (!(base::is.character(value) || base::is.null(value)))
+                stop("ERROR: Unallowed property ", value, " for 'colour' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+            private$.colour <- value
+            return(self)
         }
+
 
     )
 )

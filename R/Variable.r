@@ -75,6 +75,17 @@ Variable <- R6::R6Class(
         #' Convert to PlotDataAxis object.
         mkPlotDataYAxis = function() {
             return(PlotDataYAxis$new(label = self$name, data = self$vals, isContinous = self$isNumeric))
+        },
+        #' Convert to PlotDataAxis object.
+        #'
+        #' @param newName character New name of variable
+        #' @param columnNames list<character> New names for all columns. Default: same as newName
+        rename = function(newName, columnNames = list(newName)) {
+            self$name <- newName
+            if (self$columns != base::length(columnNames))
+                stop("Cannot rename variable columns of ", self$name, " to ", columnNames, " as the number of values does not coincide: ", self$columnNames, " != ", length(columnNames))
+            base::names(self$vals) <- base::as.vector(columnNames)
+            return(self)
         }
     ),
 

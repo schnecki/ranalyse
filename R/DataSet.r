@@ -55,20 +55,20 @@ DataSet <- R6::R6Class(
                 return(env)
             }, e, self$yVars$values))
         },
-        #' Apply a function `f :: a -> b` to each element of one specific column and replace variable. Returns new DataSet.
+        #' Apply a function `f :: a -> b` to each element of one specific variable and replace variable. Returns new DataSet.
         #'
         #' @param fun: function to apply of type `a -> b`.
-        #' @param column: column name to apply function to.
+        #' @param variable.: Variable name to apply function to.
         #' @param funDesc: Textual description of function.
         #' @return a new DataSet object.
-        map = function(fun, column, funDesc = deparse1(fun)) {
-            if (base::is.list(column)) stop("Cannot use multiple columns in function `map`")
-            var <- self$getVariable(column)
+        map = function(fun, variable, funDesc = deparse1(fun)) {
+            if (base::is.list(variable)) stop("Cannot use multiple variable in function `map`")
+            var <- self$getVariable(variable)
             varNew <- var$map(fun, funDesc)
             dsNew <- self$clone(deep = TRUE)
             dsNew$replaceVariable(varNew)
             np <- NodeProcessor$new("map")
-            procNode <- NodeProcessor$new(paste0("map(", funDesc, ",", column, ")"))
+            procNode <- NodeProcessor$new(paste0("map(", funDesc, ",", variable, ")"))
             self$addChild(procNode)
             procNode$addChild(dsNew)
             return(dsNew)
