@@ -16,7 +16,8 @@ VariableFactor <- R6::R6Class(
     public = list(
         initialize = function(name, vals, desc = NULL) {
             super$initialize(name, vals, desc)
-        }
+        },
+        asMatrix = function() base::as.integer(base::as.matrix(private$.vals))
     ),
 
     ## Accessable properties. Active bindings look like fields, but each time they are accessed,

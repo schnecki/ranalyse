@@ -47,13 +47,14 @@ DataSet <- R6::R6Class(
         #' @param as_tibble add variables as tibbles, otherwise numeric values are used if possible.
         asEnvironment = function(as_tibble = FALSE) {
             e <- rlang::env()
-            if (!as_tibble && self$xVar$isNumeric) e[[self$xVar$name]] <- self$xVar$asMatrix() # Add X-Variable
-            else                                   e[[self$xVar$name]] <- self$xVar$vals
+            ## if (!as_tibble && self$xVar$isNumeric) e[[self$xVar$name]] <- self$xVar$asMatrix() # Add X-Variable
+            ## else                                   e[[self$xVar$name]] <- self$xVar$vals
             return(rhaskell::foldl(function(env, var) { # Add all Y-Variables
                 if (!as_tibble && var$isNumeric) env[[var$name]] <- var$asMatrix()
+                else if (!as_tibble && var$isFactor)  env[[var$name]] <- var$asMatrix()
                 else env[[var$name]] <- var$vals # always as tibble
                 return(env)
-            }, e, self$yVars$values))
+            }, e, rhaskell::cons(self$xVar, self$yVars$values)))
         },
         #' Apply a function `f :: a -> b` to each element of one specific variable and replace variable. Returns new DataSet.
         #'
@@ -85,13 +86,13 @@ DataSet <- R6::R6Class(
             vars <- rhaskell::map(self$getVariable, columns)
             varsVals <- rhaskell::map(function(x) x$vals, vars)
             unpackIfOnlyScalars <- function(xs) {
-                if (length(xs) == length(rhaskell::concat(xs))) return(unlist(xs))
+                if (length(xs) == length(rhaskell::concat(xs))) return(base::unlist(xs))
                 else return(xs)
             }
-            vals <- unlist(
+            vals <- base::unlist(
                 rhaskell::map(function(row)
                     fun(unpackIfOnlyScalars(rhaskell::map(function(tibble)
-                        unlist(rhaskell::map(function(col) col[[row]], as.list(tibble)))
+                        base::unlist(rhaskell::map(function(col) col[[row]], as.list(tibble)))
                       , varsVals)))
                   , seq_len(nrow(varsVals[[1]]))))
             varNew <- Variable$fromData(newVarName, vals, paste(funDesc, "of columns", paste(columns, collapse = ",")))
@@ -250,7 +251,6 @@ DataSet <- R6::R6Class(
         plotDescriptives = function(parentPath = ".", descriptivesFolder = "descriptives", dataSetFolder = TRUE) {
             path <- paste0(parentPath, "/", descriptivesFolder)
             if (dataSetFolder) path <- paste0(path, "/", self$name)
-            if (!dir.exists(path)) dir.create(path, recursive = TRUE)
             xAxis <- self$xVar$mkPlotDataXAxis() # create x values
             mkFileName <- function(var) return(paste0(self$name, "_desc_", var$name))
             vars <- rhaskell::filter(function(x) x$isNumeric, self$variablesY)

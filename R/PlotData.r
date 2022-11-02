@@ -10,48 +10,57 @@ PlotData <- R6::R6Class(
         .name = NULL,         # Character
         .xVals = NULL,        # DataFrame
         .yVals = NULL,        # DataFrame
-        .plotDataType = NULL, # PlotDataType
+        .na.rm = NULL,        # bool
         .fill = NULL,         # character
         .alpha = NULL,        # float
         .colour = NULL,       # character
-
-        #' Function returns type for plotting
-        .autoDetectType = function() {
-            return(inferPlotDataType(self$yVals))
-        }
-
+        .size = NULL         # float
     ),
 
     ## Methods
     public = list(
-        initialize = function(name, xVals, yVals, plotDataType = NULL, fill = NULL, alpha = NULL, colour = NULL) {
+        initialize = function(name, xVals, yVals, na.rm = TRUE, colour = NULL, fill = NULL, size = NULL, alpha = NULL) {
             self$name <- name
             if (base::nrow(xVals) != base::nrow(yVals))
                 stop("PlotData$initialize(..): number of rows for x and y-values have to be equal!")
             self$xVals <- tibble::as_tibble(xVals)
             self$yVals <- tibble::as_tibble(yVals)
-            self$plotDataType <- plotDataType
+            self$na.rm <- na.rm
+            self$colour <- colour
             self$fill <- fill
             self$alpha <- alpha
-            self$colour <- colour
+            self$size <- size
         },
         asDataFrame = function() {
-            df <- tibble::add_column(self$xVals, self$yVals)
-            xName <- base::attributes(df)$names[[1]]
-            yName <- base::attributes(df)$names[[2]]
-            df <- base::as.data.frame(df)
-            return(df)
+            return(tibble::add_column(self$xVals, self$yVals))
         },
+        #' Returns Function to use for plotting, e.g. `ggplot2::geom_line`.
+        getPlotFunction = function() {
+            stop("You need to override getPlotDataType(). Must return a PlotDataType.")
+        },
+        #' Returns aes mapping
+        #'
+        #' @param df DataFrame of x and y values
+        getMapping = function(df) {
+            stop("You need to override getMapping().")
+        },
+        #' Returns list of additional arguments for plot function. NULL values are filtered automatically.
+        getAddPlotArgs = function() {
+            stop("You need to override getMapping().")
+        },
+        #' Builds the function call
         plot = function() {
-            tp <- rhaskell::Maybe$fromNullable(self$plotDataType)$fromMaybe(private$.autoDetectType())
             df <- self$asDataFrame()
-
-            if (tp == PlotDataType$GeomPoint)
-                return(ggplot2::geom_point(data = df, mapping = ggplot2::aes_string(x = xName, y = yName), na.rm = TRUE))
-            else if (tp == PlotDataType$GeomLine)
-                return(ggplot2::geom_line(data = df, mapping = ggplot2::aes_string(x = xName, y = yName), na.rm = TRUE))
-            else
-                stop("Unkown plot type in PlotData.r: ", tp)
+            fun <- self$getPlotFunction()
+            mapping <- self$getMapping(df)
+            args <- self$getAddPlotArgs()
+            defArgs <- list(na.rm = self$na.rm, fill = self$fill, alpha = self$alpha, colour = self$colour, size = self$size)
+            defArgs <- rhaskell::filter(function(x) !rhaskell::fst(x) %in% base::names(args), rhaskell::zip(base::names(defArgs), defArgs))
+            defArgNames <- rhaskell::map(rhaskell::fst, defArgs)
+            defArgVals <- rhaskell::map(rhaskell::snd, defArgs)
+            base::names(defArgVals) <- defArgNames
+            args <- rhaskell::filter(rhaskell::not %comp% rhaskell::null, base::append(args, defArgVals))
+            return(base::do.call(fun, base::append(list(data = df, mapping = mapping), args)))
         },
         #' Create X-Axis Information.
         mkPlotDataXAxis = function() {
@@ -87,11 +96,11 @@ PlotData <- R6::R6Class(
             private$.yVals <- value
             return(self)
         },
-        plotDataType = function(value) {
-            if (missing(value)) return(private$.plotDataType)
-            if (!(base::is.null(value) || ("integer" == class(value) && value <= length(PlotDataType))))
-                propError("plotDataType", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
-            private$.plotDataType <- value
+        na.rm = function(value) {
+            if (missing(value)) return(private$.na.rm)
+            if (!(base::is.logical(value) || base::is.null(value)))
+                stop("ERROR: Unallowed property ", value, " for 'na.rm' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+            private$.na.rm <- value
             return(self)
         },
         fill = function(value) {
@@ -114,14 +123,19 @@ PlotData <- R6::R6Class(
                 stop("ERROR: Unallowed property ", value, " for 'colour' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
             private$.colour <- value
             return(self)
+        },
+        size = function(value) {
+            if (missing(value)) return(private$.size)
+            if (!(base::is.numeric(value) || base::is.null(value)))
+                stop("ERROR: Unallowed property ", value, " for 'size' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+            private$.size <- value
+            return(self)
         }
-
-
     )
 )
 
 
-#' Create a new `PlotData` object of the correct type.
+#' ## Create a new `PlotData` object of the correct type.
 PlotData$fromData <- function(name, xVals, data) {
     ## Convert matrices to tibbles (= data.frames) and check input type
     if (base::is.matrix(data)) data <- tibble::as_tibble(data)
@@ -134,8 +148,8 @@ PlotData$fromData <- function(name, xVals, data) {
     else if (base::is.logical(data[[1]]))  return(PlotDataBoolean$new(name, xVals, data))
     else if (base::is.character(data) && base::is.numeric(as.matrix(data)[[1]])) { # is numeric value in character string. convert.
         warning(paste0("Found numeric values as string in PlotData. Converting to numeric values!"))
-        return(PlotData$new(name, xVals, as.numeric(data)))
+        return(ranalyse::PlotDataGeomPoint$new(name, xVals, as.numeric(data)))
     } else {
-        return(PlotData$new(name, xVals, data))
+        return(ranalyse::PlotDataGeomPoint$new(name, xVals, data))
     }
 }

@@ -8,55 +8,70 @@ PlotDataGeomRect <- R6::R6Class(
 
     ## Properties
     private = list(
-        .autoDetectType = function() {
-            return(PlotDataType$GeomRect)
-        }
+        .linetype = NULL, # numeric
+
+        .xMargin = NULL, # float
+        .yMargin = NULL # float
     ),
 
     ## Methods
     public = list(
-        initialize = function(name, xMin, xMax, yMin, yMax, fill = "#D1EEEE33", alpha = 0.5) {
-            super$initialize(name, base::data.frame(xMin = xMin, xMax = xMax), base::data.frame(yMin = yMin, yMax = yMax), plotDataType = PlotDataType$GeomRect, fill = fill, alpha = alpha)
+        initialize = function(name, xMin, xMax, yMin, yMax, xMargin = 0.0, yMargin = 0.1, na.rm = TRUE, colour = NULL, fill = "#D1EEEE33", alpha = 0.5, size = NULL, linetype = NULL) {
+            super$initialize(name, base::data.frame(xMin = xMin, xMax = xMax), base::data.frame(yMin = yMin, yMax = yMax)
+                           , na.rm = na.rm, colour = colour, fill = fill, size = size, alpha = alpha)
+            self$xMargin <- xMargin
+            self$yMargin <- yMargin
         },
-        plot = function() {
-            df <- self$asDataFrame()
-            ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
-            return(ggplot2::geom_rect(data = df, aes(xmin = xMin, xmax = xMax, yMin = yMin, ymax = yMax), fill = self$fill, alpha = self$alpha))
-            ## return(ggplot2::geom_point(data = df, mapping = ggplot2::aes_string(x = xName, y = yName), na.rm = TRUE))
+        #' Returns Function to use for plotting, e.g. one implemention could be `return(ggplot2::geom_line)`.
+        getPlotFunction = function() {
+            return(ggplot2::geom_rect)
         },
-        #' Create X-Axis Information.
-        mkPlotDataGeomRectXAxis = function() {
-            return(PlotDataGeomRectXAxis$new(data = self$xVals, label = self$name))
+        #' Returns aes mapping
+        #'
+        #' @param df DataFrame of x and y values
+        getMapping = function(df) {
+            ## xDiff <- base::abs(df$xMax - df$xMin)
+            ## yDiff <- base::abs(df$yMax - df$yMin)
+            ## dfMargin <- base::data.frame(xMin = df$xMin - self$xMargin * xDiff, xMax = df$xMax + self$xMargin * xDiff, yMin = df$yMin - self$yMargin * yDiff, yMax = df$yMax + self$yMargin * yDiff)
+            ## return(tibble::add_column(self$xVals, self$yVals))
+
+            return(ggplot2::aes(xmin = xMin - self$xMargin * base::abs(xMax - xMin), xmax = xMax + self$xMargin * base::abs(xMax - xMin),
+                                ymin = yMin - self$yMargin * base::abs(yMax - yMin), ymax = yMax + self$yMargin * base::abs(yMax - yMin)))
         },
-        #' Create Y-Axis Information.
-        mkPlotDataGeomRectYAxis = function() {
-            return(PlotDataGeomRectYAxis$new(data = self$yVals, label = self$name))
+        #' Returns list of arguments for plot function. NULL values are filtered automatically.
+        getAddPlotArgs = function() {
+            return(list(alpha = self$alpha
+                      , colour = self$colour
+                      , fill = self$fill
+                      , linetype = self$linetype
+                      , size = self$size
+                      , na.rm = self$na.rm))
         }
     ),
 
     ## Accessable properties. Active bindings look like fields, but each time they are accessed,
     ## they call a function. They are always publicly visible.
     active = list(
+        linetype = function(value) {
+            if (missing(value)) return(private$.linetype)
+            if (!(base::is.numeric(value) || base::is.null(value)))
+                stop("ERROR: Unallowed property ", value, " for 'linetype' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+            private$.linetype <- value
+            return(self)
+        },
+        xMargin = function(value) {
+            if (missing(value)) return(private$.xMargin)
+            if (!(base::is.numeric(value)))
+                stop("ERROR: Unallowed property ", value, " for 'xMargin' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+            private$.xMargin <- value
+            return(self)
+        },
+        yMargin = function(value) {
+            if (missing(value)) return(private$.yMargin)
+            if (!(base::is.numeric(value)))
+                stop("ERROR: Unallowed property ", value, " for 'yMargin' at ", getSrcFilename(function(){}), ":", getSrcLocation(function(){}))
+            private$.yMargin <- value
+            return(self)
+        }
     )
 )
-
-
-#' Create a new `PlotDataGeomRect` object of the correct type.
-PlotDataGeomRect$fromData <- function(name, xVals, data) {
-    ## Convert matrices to tibbles (= data.frames) and check input type
-    if (base::is.matrix(data)) data <- tibble::as_tibble(data)
-    if (base::is.vector(data)) data <- tibble::as_tibble(data)
-    if (base::is.list(data) && base::is.numeric(data[[1]])) data <- tibble::as_tibble(data)
-    if (!base::is.data.frame(data)) stop("PlotDataGeomRect$fromData: expected a data.frame, matrix, vector or list of numeric values as input")
-
-    if      (ranalyse::is.date(data[[1]])) return(PlotDataGeomRectDate$new(name, xVals, data))
-    else if (base::is.factor(data[[1]]))   return(PlotDataGeomRectFactor$new(name, xVals, data))
-    else if (base::is.logical(data[[1]]))  return(PlotDataGeomRectBoolean$new(name, xVals, data))
-    else if (base::is.character(data) && base::is.numeric(as.matrix(data)[[1]])) { # is numeric value in character string. convert.
-        warning(paste0("Found numeric values as string in PlotDataGeomRect. Converting to numeric values!"))
-        return(PlotDataGeomRect$new(name, xVals, as.numeric(data)))
-    } else {
-        return(PlotDataGeomRect$new(name, xVals, data))
-    }
-}

@@ -21,7 +21,7 @@ Variable <- R6::R6Class(
                 self$vals <- vals
             } else {
                 vals <- tibble::tibble(vals)
-                names(vals) <- self$name
+                base::names(vals) <- self$name
                 self$vals <- vals
             }
 
@@ -58,7 +58,10 @@ Variable <- R6::R6Class(
         #' @param funDesc: Textual description of function.
         #' @return a new Variable object
         map = function(fun, funDesc = deparse1(fun)) {
-            varNew <- Variable$fromData(self$name, base::unlist(rhaskell::map(fun, self$vals)), paste0("map(", funDesc, ",", self$desc, ")"))
+            allCols <- rhaskell::map(function(col) base::unlist(rhaskell::map(fun, self$vals[[col]])), base::seq_len(base::length(self$vals)))
+            tbl <- rhaskell::foldl(tibble::add_column, tibble::tibble(rhaskell::head(allCols)), rhaskell::tail(allCols))
+            base::names(tbl) <- base::names(self$vals)
+            varNew <- Variable$fromData(self$name, tbl, paste0("map(", funDesc, ",", self$desc, ")"))
             self$addChild(varNew)
             return(varNew)
         },

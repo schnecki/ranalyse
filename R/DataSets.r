@@ -37,10 +37,10 @@ DataSets <- R6::R6Class(
             for (ds in self$datasets) if (ds$name == dsName) return(rhaskell::Right(ds))
             return(rhaskell::Left(paste0("Could not find dataset with name '", dsName, "'")))
         },
-        #' Apply a function `f :: a -> b` to each element of  one specific column and for all DataSets.
+        #' Apply a function `f :: a -> b` to each element of one specific variable and for all DataSets.
         #'
         #' @param fun: function to apply of type `a -> b`.
-        #' @param column: column name to apply function to.
+        #' @param variable: variable name to apply function to.
         #' @param funDesc: Textual description of function.
         #' @return a new DataSets object.
         map = function(fun, column, funDesc = deparse1(fun)) {
@@ -127,24 +127,31 @@ DataSets <- R6::R6Class(
         #' Create CITS Model
         #' TODO: improve interface to no require 1/0 vectors for periods
         #'
-        createCITSModel = function(mainDsName, outcomes, selectionVars, addModelSelection) {
+        createCITSModel = function(mainDsName, outcomes, selectionVars, addModelSelection, resultFolder = "results", citsFolder = "CITS") {
             ds <- self$getDataSet(mainDsName)$fromRightOrStop()
             models <- list()
             for (outcome in outcomes) {
-                fitter <- FitterGLM$new(family = stats::quasipoisson, na.action = "na.exclude")
-                fitter$data <- ds$asEnvironment()
-                rhs <- paste(base::append(selectionVars, addModelSelection), collapse = " + ")
-                fit <- fitter$fit(paste(outcome, "~", rhs))
                 varNamePeriods <- "CITS_periods"
-                dssCITS <- self$accumTo(varNamePeriods, factor %comp% sum, selectionVars)
+                dssCITS <- self$accumTo(varNamePeriods, sum, selectionVars)
                 dsCITS <- dssCITS$getDataSet(mainDsName)$fromRightOrStop()
+                ## Fit model: outcome ~  + trend + CITS_periods
+                fitter <- FitterGLM$new(family = stats::quasipoisson, na.action = "na.exclude")
+                fitter$data <- dsCITS$asEnvironment(as_tibble = FALSE)
+                ## rhs <- paste(base::append(selectionVars, addModelSelection), collapse = " + ")
+                rhs <- paste(base::append(dsCITS$xVar$name, varNamePeriods), collapse = " + ")
+                fit <- fitter$fit(paste(outcome, "~", rhs))
 
                 ## datanew <- tibble::new_tibble(dsCITS$xVar$asMatrix())
                 ## datanew <- tibble::add_column(datanew, dsCITS$getVariable(varNamePeriods)$asMatrix())
                 ## datanew <- rhaskell::foldl(function(df, out) tibble::add_column(df, dsCITS$getVariable(out)$asMatrix()), datanew, selectionVars)
 
-                preds <- stats::predict(fit$model, type = "response", newdata = dsCITS$asEnvironment())
-                                        # dpred <- data.frame(T = datanew$T, pred1 = stats::predict(fit$model, type = "response", newdata = datanew))
+                preds <- tibble::as_tibble(stats::predict(fit$model, type = "response", newdata = dsCITS$asEnvironment()))
+                env <- dsCITS$asEnvironment()
+                dsCITSCF <- dsCITS$map(function(x) 0, varNamePeriods)
+                ##:ess-bp-start::conditional@:##
+browser(expr={TRUE})##:ess-bp-end:##
+                predcf <- tibble::as_tibble(stats::predict(fit$model, type = "response", dsCITSCF$asEnvironment())) # counterfactual
+                # dpred <- data.frame(T = datanew$T, pred1 = stats::predict(fit$model, type = "response", newdata = datanew))
 
                 xVals <- dsCITS$xVar$asTibble()
                 yVals <- dsCITS$getVariable(outcome)$asTibble()
@@ -152,12 +159,14 @@ DataSets <- R6::R6Class(
                     selVals <- dsCITS$getVariable(sel)$asTibble()
                     xs <- xVals[selVals == 1, ]
                     ys <- yVals[selVals == 1, ]
-                    return(PlotDataGeomRect$new(sel, min(xs, na.rm = TRUE), max(xs, na.rm = TRUE), min(ys, na.rm = TRUE), max(ys, na.rm = TRUE)))
+                    return(PlotDataGeomRect$new(sel, xMin = min(xs, na.rm = TRUE), xMax = max(xVals, na.rm = TRUE), yMin = min(ys, na.rm = TRUE), yMax = max(yVals, na.rm = TRUE), alpha = 0.65))
                 }, selectionVars)
-                ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
-                ## plDs <- base::append(plDs, list(PlotDataGeomPoint(name = outcome, aes(T, allrc),colour="azure4",alpha=0.5)))
-
+                plDs <- base::append(plDs, list(PlotDataGeomPoint$new(name = outcome, xVals, yVals, alpha = 0.40)
+                                              , PlotDataGeomLine$new(name = "prediction", xVals, preds, colour = "orangered3", linetype = 2, size = 1.0, alpha = 1.0)
+                                              , PlotDataGeomLine$new(name = "counterfactual", xVals, predcf, colour = "firebrick1", linetype = 1, size = 1.0, alpha = 1.0)
+                                                ))
+                plot <- Plot$new(paste0(outcome, ", ", self$name), plotData = plDs, yAxisTitle = outcome, subtitle = "Only change in level, all periods. Bf diagnosis"
+                               , path = paste0(resultFolder, "/", citsFolder), filename = paste0(self$name, "_", "1-level-change_", outcome))
 
                 ## p1<-ggplot() +
                 ##   geom_rect(data = data.frame(xmin = 36,xmax = 120, ymin = 50,ymax = 400),aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
@@ -174,6 +183,9 @@ browser(expr={TRUE})##:ess-bp-end:##
                 ##   theme_classic()
 
 
+                plot$plot()
+                ##:ess-bp-start::conditional@:##
+browser(expr={TRUE})##:ess-bp-end:##
                 models <- base::append(models, model)
             }
 
@@ -212,7 +224,6 @@ browser(expr={TRUE})##:ess-bp-end:##
         #' @param dataSetFolder Bool Create a a subfolder for for each dataset. Default: TRUE
         plotDescriptives = function(parentPath = ".", resultFolder = "results", descriptivesFolder = "descriptives", dataSetFolder = TRUE) {
             path <- paste0(parentPath, "/", resultFolder)
-            if (!dir.exists(path)) dir.create(path, recursive = TRUE)
             rhaskell::mapM_(function(ds) ds$plotDescriptives(path, descriptivesFolder, dataSetFolder), self$datasets)
         }
 

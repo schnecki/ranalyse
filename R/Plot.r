@@ -41,7 +41,8 @@ Plot <- R6::R6Class(
             self$subtitle <- subtitle
             self$path <- path
             self$filename <- filename
-            self$plotData <- rhaskell::Maybe$fromNullable(plotData)$maybe(base::list(), base::list)
+            if (base::is.list(plotData)) self$plotData <- plotData
+            else self$plotData <- rhaskell::Maybe$fromNullable(plotData)$maybe(base::list(), base::list)
             self$xAxis <- PlotAxis$new(xAxisTitle, rhaskell::map(function(x) x$mkPlotDataXAxis(), self$plotData))
             self$yAxis <- PlotAxis$new(yAxisTitle, rhaskell::map(function(x) x$mkPlotDataYAxis(), self$plotData))
         },
@@ -64,11 +65,12 @@ Plot <- R6::R6Class(
             if (!rhaskell::any(function(fmt) base::grepl(fmt, fn, fixed = TRUE), formats))
                 fn <- paste0(fn, ".pdf") # use pdf as default
             path <- rhaskell::Maybe$fromNullable(self$path)$fromMaybe(".")
+            if (!dir.exists(path)) dir.create(path, recursive = TRUE)
             file <- paste0(path, "/", fn)
             plot <- ggplot()
             plot <- rhaskell::foldl(function(p, plotData) p + plotData$plot(), plot, self$plotData) # add all data
-            plot <- rhaskell::Maybe$fromNullable(self$xAxis)$alt(self$inferXAxis())$bind(function(x) plot + x$plot())$fromMaybe(plot)
-            plot <- rhaskell::Maybe$fromNullable(self$yAxis)$alt(self$inferYAxis())$bind(function(x) plot + x$plot())$fromMaybe(plot)
+            plot <- rhaskell::Maybe$fromNullable(self$xAxis)$alt(self$inferXAxis())$fmap(function(x) plot + x$plot())$fromMaybe(plot)
+            plot <- rhaskell::Maybe$fromNullable(self$yAxis)$alt(self$inferYAxis())$fmap(function(x) plot + x$plot())$fromMaybe(plot)
 
 
             ## theme_set(theme_grey())
@@ -84,9 +86,12 @@ Plot <- R6::R6Class(
             ##     scale_y_continuous("counts" )+
             ##     facet_wrap(city~., nrow = 2, scales = "free") +
             ##     ggtitle("SO2 by intervention period in each city",subtitle = "time scale: month; 0:pre-intervention; 3: post-intervention")
+
+            plot <- plot + ggtitle(self$name, subtitle = self$subtitle)
+            plot
+            ##:ess-bp-start::conditional@:##
+browser(expr={TRUE})##:ess-bp-end:##
             ggsave(filename = file, width = 27, height = 22, dpi = 600, units = "cm")
-
-
         }
 
     ),
@@ -96,14 +101,14 @@ Plot <- R6::R6Class(
     active = list(
         title = function(value) {
             if (missing(value)) return(private$.title)
-            if (!(base::is.character(value)))
+            if (!(base::is.character(value) || base::is.null(value)))
                 propError("title", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.title <- value
             return(self)
         },
         x = function(value) {
             if (missing(value)) return(private$.x)
-            if (!(base::is.data.frame(value)))
+            if (!(base::is.data.frame(value) || base::is.null(value)))
                 propError("x", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.x <- value
             return(self)
@@ -111,21 +116,21 @@ Plot <- R6::R6Class(
 
         subtitle = function(value) {
             if (missing(value)) return(private$.subtitle)
-            if (!(base::is.character(value)))
+            if (!(base::is.character(value) || base::is.null(value)))
                 propError("subtitle", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.subtitle <- value
             return(self)
         },
         path = function(value) {
             if (missing(value)) return(private$.path)
-            if (!(base::is.character(value)))
+            if (!(base::is.character(value) || base::is.null(value)))
                 propError("path", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.path <- value
             return(self)
         },
         filename = function(value) {
             if (missing(value)) return(private$.filename)
-            if (!(base::is.character(value)))
+            if (!(base::is.character(value) || base::is.null(value)))
                 propError("filename", value, getSrcFilename(function(){}), getSrcLocation(function(){}))
             private$.filename <- value
             return(self)
