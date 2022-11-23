@@ -48,8 +48,10 @@ Fitter <- R6::R6Class(
                 res
             }, error = function(cond) {
                 self$converged <- FALSE
-                warning("Cannot fit model: ", cond)
-                if (failOnError) stop(cond)
+                if (failOnError)
+                    stop("Cannot fit model: ", cond)
+                else
+                    warning(cond)
                 return(NULL)
             })
 
@@ -106,3 +108,8 @@ Fitter <- R6::R6Class(
 
     )
 )
+
+## Dispatch R3 summary function to model.
+summary.Fitter <- function(obj) {
+    return(base::summary(obj$model))
+}

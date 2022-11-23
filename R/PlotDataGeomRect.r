@@ -26,17 +26,16 @@ PlotDataGeomRect <- R6::R6Class(
         getPlotFunction = function() {
             return(ggplot2::geom_rect)
         },
+        asDataFrame = function() {
+            xMar <- self$xMargin * base::abs(self$xVals$xMax - self$xVals$xMin)
+            yMar <- self$yMargin * base::abs(self$yVals$yMax - self$yVals$yMin)
+            return(tibble::tibble(xMin = self$xVals$xMin - xMar, xMax = self$xVals$xMax + xMar, yMin = self$yVals$yMin - yMar, yMax = self$yVals$yMax + yMar))
+        },
         #' Returns aes mapping
         #'
         #' @param df DataFrame of x and y values
         getMapping = function(df) {
-            ## xDiff <- base::abs(df$xMax - df$xMin)
-            ## yDiff <- base::abs(df$yMax - df$yMin)
-            ## dfMargin <- base::data.frame(xMin = df$xMin - self$xMargin * xDiff, xMax = df$xMax + self$xMargin * xDiff, yMin = df$yMin - self$yMargin * yDiff, yMax = df$yMax + self$yMargin * yDiff)
-            ## return(tibble::add_column(self$xVals, self$yVals))
-
-            return(ggplot2::aes(xmin = xMin - self$xMargin * base::abs(xMax - xMin), xmax = xMax + self$xMargin * base::abs(xMax - xMin),
-                                ymin = yMin - self$yMargin * base::abs(yMax - yMin), ymax = yMax + self$yMargin * base::abs(yMax - yMin)))
+            return(ggplot2::aes(xmin = xMin, xmax = xMax, ymin = yMin, ymax = yMax))
         },
         #' Returns list of arguments for plot function. NULL values are filtered automatically.
         getAddPlotArgs = function() {

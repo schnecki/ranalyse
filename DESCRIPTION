@@ -31,7 +31,8 @@ Imports:
   dlnm,
   digest,
   tibble,
-  tidyr
+  tidyr,
+  Epi
 
 Depends: R (>= 3.2)
 License: file LICENSE

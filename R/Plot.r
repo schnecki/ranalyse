@@ -87,10 +87,10 @@ Plot <- R6::R6Class(
             ##     facet_wrap(city~., nrow = 2, scales = "free") +
             ##     ggtitle("SO2 by intervention period in each city",subtitle = "time scale: month; 0:pre-intervention; 3: post-intervention")
 
-            plot <- plot + ggtitle(self$name, subtitle = self$subtitle)
+            plot <- plot + ggplot2::ggtitle(label = self$name, subtitle = self$subtitle)
+            ## plot + ggplot2::scale_x_date(## date_breaks = "1 week", date_labels = "%W"
+            ##                              )
             plot
-            ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
             ggsave(filename = file, width = 27, height = 22, dpi = 600, units = "cm")
         }
 

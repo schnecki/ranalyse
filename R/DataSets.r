@@ -135,10 +135,17 @@ DataSets <- R6::R6Class(
                 dssCITS <- self$accumTo(varNamePeriods, sum, selectionVars)
                 dsCITS <- dssCITS$getDataSet(mainDsName)$fromRightOrStop()
                 ## Fit model: outcome ~  + trend + CITS_periods
+
+                ## TODO: if outcome continous: guassian, otherwise quasipoisson
+
                 fitter <- FitterGLM$new(family = stats::quasipoisson, na.action = "na.exclude")
                 fitter$data <- dsCITS$asEnvironment(as_tibble = FALSE)
                 ## rhs <- paste(base::append(selectionVars, addModelSelection), collapse = " + ")
                 rhs <- paste(base::append(dsCITS$xVar$name, varNamePeriods), collapse = " + ")
+                ## rhs <- paste(base::append(base::append(dsCITS$xVar$name, varNamePeriods), addModelSelection), collapse = " + ")
+
+
+                rhs <- paste(base::append(varNamePeriods, addModelSelection), collapse = " + ")
                 fit <- fitter$fit(paste(outcome, "~", rhs))
 
                 ## datanew <- tibble::new_tibble(dsCITS$xVar$asMatrix())
@@ -148,25 +155,81 @@ DataSets <- R6::R6Class(
                 preds <- tibble::as_tibble(stats::predict(fit$model, type = "response", newdata = dsCITS$asEnvironment()))
                 env <- dsCITS$asEnvironment()
                 dsCITSCF <- dsCITS$map(function(x) 0, varNamePeriods)
-                ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
                 predcf <- tibble::as_tibble(stats::predict(fit$model, type = "response", dsCITSCF$asEnvironment())) # counterfactual
                 # dpred <- data.frame(T = datanew$T, pred1 = stats::predict(fit$model, type = "response", newdata = datanew))
 
                 xVals <- dsCITS$xVar$asTibble()
+                ## xVals <- dsCITS$getVariable("date")$asTibble()
                 yVals <- dsCITS$getVariable(outcome)$asTibble()
                 plDs <- rhaskell::map(function(sel) {
                     selVals <- dsCITS$getVariable(sel)$asTibble()
                     xs <- xVals[selVals == 1, ]
                     ys <- yVals[selVals == 1, ]
-                    return(PlotDataGeomRect$new(sel, xMin = min(xs, na.rm = TRUE), xMax = max(xVals, na.rm = TRUE), yMin = min(ys, na.rm = TRUE), yMax = max(yVals, na.rm = TRUE), alpha = 0.65))
+                    return(PlotDataGeomRect$new(sel
+                                              , xMin = base::min(base::as.vector(xs)[[1]], na.rm = TRUE)
+                                              , xMax = base::max(base::as.vector(xVals)[[1]], na.rm = TRUE)
+                                              , yMin = base::min(base::as.vector(ys)[[1]], na.rm = TRUE)
+                                              , yMax = base::max(base::as.vector(yVals)[[1]], na.rm = TRUE)
+                                              , alpha = 0.35))
                 }, selectionVars)
                 plDs <- base::append(plDs, list(PlotDataGeomPoint$new(name = outcome, xVals, yVals, alpha = 0.40)
                                               , PlotDataGeomLine$new(name = "prediction", xVals, preds, colour = "orangered3", linetype = 2, size = 1.0, alpha = 1.0)
                                               , PlotDataGeomLine$new(name = "counterfactual", xVals, predcf, colour = "firebrick1", linetype = 1, size = 1.0, alpha = 1.0)
                                                 ))
-                plot <- Plot$new(paste0(outcome, ", ", self$name), plotData = plDs, yAxisTitle = outcome, subtitle = "Only change in level, all periods. Bf diagnosis"
+                plot <- Plot$new(paste0(self$name, ": ", outcome, " ~ ", rhs), plotData = plDs, yAxisTitle = outcome, subtitle = "Only change in level, all periods. Bf diagnosis"
                                , path = paste0(resultFolder, "/", citsFolder), filename = paste0(self$name, "_", "1-level-change_", outcome))
+                plot$plot()
+
+                fitModelAndPlot <- function(rhsSel) {
+                    rhs <- paste(base::append(rhsSel, addModelSelection), collapse = " + ")
+                    fitter <- FitterGLM$new(family = stats::quasipoisson, na.action = "na.exclude")
+                    fitter$data <- dsCITS$asEnvironment(as_tibble = FALSE)
+                    fit <- fitter$fit(paste(outcome, "~", rhs))
+                    preds <- tibble::as_tibble(stats::predict(fit$model, type = "response", newdata = dsCITS$asEnvironment()))
+                    dsCITSCF <- dsCITS$map(function(x) 0, rhsSel)
+                    predcf <- tibble::as_tibble(stats::predict(fit$model, type = "response", dsCITSCF$asEnvironment())) # counterfactual
+
+                    xVals <- dsCITS$xVar$asTibble()
+                    ## xVals <- dsCITS$getVariable("date")$asTibble()
+                    yVals <- dsCITS$getVariable(outcome)$asTibble()
+                    plDs <- rhaskell::map(function(sel) {
+                        selVals <- dsCITS$getVariable(sel)$asTibble()
+                        xs <- xVals[selVals == 1, ]
+                        ys <- yVals[selVals == 1, ]
+                        return(PlotDataGeomRect$new(sel
+                                                  , xMin = base::min(base::as.vector(xs)[[1]], na.rm = TRUE)
+                                                  , xMax = base::max(base::as.vector(xVals)[[1]], na.rm = TRUE)
+                                                  , yMin = base::min(base::as.vector(ys)[[1]], na.rm = TRUE)
+                                                  , yMax = base::max(base::as.vector(yVals)[[1]], na.rm = TRUE)
+                                                  , alpha = 0.35))
+                    }, list(rhsSel))
+                    plDs <- base::append(plDs, list(PlotDataGeomPoint$new(name = outcome, xVals, yVals, alpha = 0.40)
+                                                  , PlotDataGeomLine$new(name = "prediction", xVals, preds, colour = "orangered3", linetype = 2, size = 1.0, alpha = 1.0)
+                                                  , PlotDataGeomLine$new(name = "counterfactual", xVals, predcf, colour = "firebrick1", linetype = 1, size = 1.0, alpha = 1.0)
+                                                    ))
+                    plot <- Plot$new(paste0(self$name, ": ", outcome, " ~ ", rhs), plotData = plDs, yAxisTitle = outcome, subtitle = paste0("Only change in level, ", rhsSel, ". Bf diagnosis")
+                                   , path = paste0(resultFolder, "/", citsFolder), filename = paste0(self$name, "_", "1-level-change_", outcome, "_", rhsSel))
+
+                    plot$plot()
+                    return(fit)
+                }
+                baseModels <- rhaskell::map(fitModelAndPlot, selectionVars)
+                ## rhaskell::map(function(mdl) mdl$model$formula, baseModels)
+                cis <- rhaskell::map(function(mdl) Epi::ci.lin(mdl$model, Exp = TRUE), baseModels)
+                pVals <- rhaskell::zipWith(function(sel, ci) ci[sel, "P"] , selectionVars, cis)
+                pVal <- base::min(base::unlist(pVals))
+                idx <- rhaskell::find(function(i) (pVals[[i]] == pVal), base::seq_len(base::length(pVals)))$fromJust()
+                ## Use
+                base::print("Plots have been written. Take a look and decide on the date for futher analysis.")
+                rhaskell::void(rhaskell::zipWith3(function(idx, var, pVal) {
+                    base::print(paste0("[", idx, "] ", var, " (p-value: ", pVal, ")"))
+                }, base::seq_len(base::length(pVals)), selectionVars, pVals))
+                v <- base::readline(paste0("Enter value [", idx, "]"))
+                if (v != "")
+                    idx <- base::as.numeric(v)
+                print("idx: ", idx)
+
+                x <- as.numeric(x)
 
                 ## p1<-ggplot() +
                 ##   geom_rect(data = data.frame(xmin = 36,xmax = 120, ymin = 50,ymax = 400),aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
@@ -183,13 +246,11 @@ browser(expr={TRUE})##:ess-bp-end:##
                 ##   theme_classic()
 
 
-                plot$plot()
-                ##:ess-bp-start::conditional@:##
-browser(expr={TRUE})##:ess-bp-end:##
-                models <- base::append(models, model)
+                ## models <- base::append(models, model)
             }
 
-            return(mdl)
+            ## TODO!!!
+            return(models)
 
             ## if (!base::is.list(outcomes)) outcomes <- list(outcomes)
             ## if (!base::is.list(fitters))  fitters  <- list(fitters)
