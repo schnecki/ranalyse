@@ -127,7 +127,8 @@ DataSets <- R6::R6Class(
         #' Create CITS Model
         #' TODO: improve interface to no require 1/0 vectors for periods
         #'
-        createCITSModel = function(mainDsName, outcomes, selectionVars, addModelSelection, resultFolder = "results", citsFolder = "CITS") {
+        createCITSModel = function(mainDsName, outcomes, selectionVars, addModelSelection, autoCorrTerms = list(), resultFolder = "results", citsFolder = "CITS", interactive = TRUE) {
+            resPath <- paste0(resultFolder, "/", citsFolder)
             ds <- self$getDataSet(mainDsName)$fromRightOrStop()
             models <- list()
             for (outcome in outcomes) {
@@ -177,7 +178,7 @@ DataSets <- R6::R6Class(
                                               , PlotDataGeomLine$new(name = "counterfactual", xVals, predcf, colour = "firebrick1", linetype = 1, size = 1.0, alpha = 1.0)
                                                 ))
                 plot <- Plot$new(paste0(self$name, ": ", outcome, " ~ ", rhs), plotData = plDs, yAxisTitle = outcome, subtitle = "Only change in level, all periods. Bf diagnosis"
-                               , path = paste0(resultFolder, "/", citsFolder), filename = paste0(self$name, "_", "1-level-change_", outcome))
+                               , path = resPath, filename = paste0(self$name, "_", "1-level-change_", outcome))
                 plot$plot()
 
                 fitModelAndPlot <- function(rhsSel) {
@@ -208,7 +209,7 @@ DataSets <- R6::R6Class(
                                                   , PlotDataGeomLine$new(name = "counterfactual", xVals, predcf, colour = "firebrick1", linetype = 1, size = 1.0, alpha = 1.0)
                                                     ))
                     plot <- Plot$new(paste0(self$name, ": ", outcome, " ~ ", rhs), plotData = plDs, yAxisTitle = outcome, subtitle = paste0("Only change in level, ", rhsSel, ". Bf diagnosis")
-                                   , path = paste0(resultFolder, "/", citsFolder), filename = paste0(self$name, "_", "1-level-change_", outcome, "_", rhsSel))
+                                   , path = resPath, filename = paste0(self$name, "_", "1-level-change_", outcome, "_", rhsSel))
 
                     plot$plot()
                     return(fit)
@@ -220,31 +221,59 @@ DataSets <- R6::R6Class(
                 pVal <- base::min(base::unlist(pVals))
                 idx <- rhaskell::find(function(i) (pVals[[i]] == pVal), base::seq_len(base::length(pVals)))$fromJust()
                 ## Use
-                base::print("Plots have been written. Take a look and decide on the date for futher analysis.")
+                rhsAdd <- paste(addModelSelection, collapse = " + ")
+                rhsSels <- paste(selectionVars, collapse = ", ")
+                base::print(paste0("Plots have been written for '", outcome, " ~ ", rhsAdd, " + OneOf(", rhsSels, ")'. Take a look and decide on the base model for futher analysis."))
                 rhaskell::void(rhaskell::zipWith3(function(idx, var, pVal) {
                     base::print(paste0("[", idx, "] ", var, " (p-value: ", pVal, ")"))
                 }, base::seq_len(base::length(pVals)), selectionVars, pVals))
-                v <- base::readline(paste0("Enter value [", idx, "]"))
-                if (v != "")
-                    idx <- base::as.numeric(v)
-                print("idx: ", idx)
+                if (interactive) {
+                    v <- base::readline(paste0("Enter value [", idx, "]"))
+                    if (v != "")
+                        idx <- base::as.numeric(v)
+                }
+                print(paste0("Using index ", idx, ". Base Model: ", baseModels[[idx]]$model$formula))
+                model <- baseModels[[idx]]
+                rhsSel <- selectionVars[[idx]]
 
-                x <- as.numeric(x)
+                ## Check residuals
+                res <- stats::residuals(model$model, type = "deviance")
+                plDt <- PlotDataGeomPoint$new(name = "Residuals", xVals = dsCITS$xVar$asTibble(), yVals = res, colour = "grey", alpha = 0.6, size = 0.7)
+                plot <- Plot$new(paste0(self$name, ": ", outcome, " ~ ", rhs, ". Residuals over time."), yAxisTitle = "Deviance residuals", xAxisTitle = "Date",
+                         plotData = plDt, path = resPath, filename = paste0(self$name, "_", "_", outcome, "_", rhsSel, "_residuals-base-model"))
+                plot$plot()
+                ## plot(dSCTFm$T,res,pch=19,cex=0.7,col=grey(0.6), main="Residuals over time",ylab="Deviance residuals",xlab="Date")
+                ## abline(h=0,lty=2,lwd=2)
 
-                ## p1<-ggplot() +
-                ##   geom_rect(data = data.frame(xmin = 36,xmax = 120, ymin = 50,ymax = 400),aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
-                ##             fill = grisitot, alpha = 0.5) +
-                ##   geom_rect(data = data.frame(xmin = 36+24,xmax = 120, ymin = 50,ymax = 400),aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
-                ##             fill = grisitot, alpha = 0.5) +
-                ##   geom_rect(data = data.frame(xmin = 36+24+16,xmax = 120, ymin = 50,ymax = 400),aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
-                ##             fill = grisitot, alpha = 0.5) +
-                ##   geom_point(data = dSCTFm,aes(T, allrc),colour="azure4",alpha=0.5) +
-                ##   scale_x_continuous("month", breaks = 0:9*12, labels = 2008:2017)+
-                ##   geom_line(data = dpredcf,aes(T, pred1), colour = "orangered3",linetype=2,size=0.75) +
-                ##   geom_line(data = dpred,aes(T, pred1), colour = "firebrick1",size=1) +
-                ##   ggtitle("allrc, SCTF, 2008-2017",subtitle = "Only change in level, all periods. Mensual scale. Bf diagnosis")+
-                ##   theme_classic()
+                # QUESTION: Using na.pass is good?
+                acf <- stats::acf(res, na.action = na.pass)
+                pacf <- stats::pacf(res, na.action = na.pass)
+                bgacf <- lmtest::bgtest(model$model, order = 12)
+                pVal <- bgacf$p.value
 
+                ## solve auto-correlation
+                solveAutocorrelation <- function(term) {
+                    ##:ess-bp-start::conditional@:##
+browser(expr={TRUE})##:ess-bp-end:##
+                    rhs <- paste(base::append(rhsSel, base::append(addModelSelection, term)), collapse = " + ")
+                    fitter <- FitterGLM$new(family = stats::quasipoisson, na.action = "na.exclude")
+                    fitter$data <- dsCITS$asEnvironment(as_tibble = FALSE)
+                    fit <- fitter$fit(paste(outcome, "~", rhs))
+                    res <- stats::residuals(model$model, type = "deviance")
+                    plDt <- PlotDataGeomPoint$new(name = "Residuals", xVals = dsCITS$xVar$asTibble(), yVals = res, colour = "grey", alpha = 0.6, size = 0.7)
+                    plot <- Plot$new(paste0(self$name, ": ", fit$model$formula, ". Residuals over time."), yAxisTitle = "Deviance residuals", xAxisTitle = "Date",
+                             plotData = plDt, path = resPath, filename = paste0(self$name, "_", "_", outcome, "_", rhsSel, "_residuals-base-model_ac-", term))
+                    plot$plot()
+                    acf <- stats::acf(res, na.action = na.pass)
+                    pacf <- stats::pacf(res, na.action = na.pass)
+                    bgacf <- lmtest::bgtest(model$model, order = 12)
+                    pVal <- bgacf$p.value
+                    valid <- car::vif(fit$model)
+                    # TODO
+                    stop("TODO")
+
+                }
+                acModels <- rhaskell::map(solveAutocorrelation, autoCorrTerms)
 
                 ## models <- base::append(models, model)
             }

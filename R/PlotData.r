@@ -21,10 +21,10 @@ PlotData <- R6::R6Class(
     public = list(
         initialize = function(name, xVals, yVals, na.rm = TRUE, colour = NULL, fill = NULL, size = NULL, alpha = NULL) {
             self$name <- name
-            if (base::nrow(xVals) != base::nrow(yVals))
-                stop("PlotData$initialize(..): number of rows for x and y-values have to be equal!")
             self$xVals <- tibble::as_tibble(xVals)
             self$yVals <- tibble::as_tibble(yVals)
+            if (base::nrow(self$xVals) != base::nrow(self$yVals))
+                stop("PlotData$initialize(..): number of rows for x and y-values have to be equal!")
             self$na.rm <- na.rm
             self$colour <- colour
             self$fill <- fill
